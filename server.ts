@@ -134,8 +134,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// --- LANCEMENT ---
-const PORT = process.env.PORT || 3000;
+// --- LANCEMENT UNIQUE ---
+// On convertit en nombre et on ne le déclare QU'UNE FOIS
+const PORT: number = Number(process.env.PORT) || 3000;
+
 httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`---`);
   console.log(`🚀 ZEKATON Serveur Live sur le port ${PORT}`);
@@ -143,9 +145,3 @@ httpServer.listen(PORT, '0.0.0.0', () => {
 });
 
 export {};
-// Remplace ton ancien bloc httpServer.listen par celui-ci :
-const PORT = Number(process.env.PORT) || 3000;
-
-httpServer.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 ZEKATON Serveur Live sur le port ${PORT}`);
-});
