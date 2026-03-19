@@ -185,12 +185,13 @@
                     <div id="timer">${data.timeLeft}</div>
                     ${p.history.some(h => h.question === data.currentQuestionIndex + 1) 
                         ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
-                        : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100" onkeypress="if(event.key==='Enter') submitGuess()">
-                           <button id="btn" onclick="submitGuess()">Valider</button>`
+                        : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100">
+                           <button id="btn">Valider</button>`
                     }
                     <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                 `;
                 showLeaveBtn();
+                attachQuestionEvents();
             } else if(data.gameState === 'CARD_FINISHED') {
                 const scoresHtml = Object.values(data.players)
                     .sort((a, b) => b.cardScore - a.cardScore)
