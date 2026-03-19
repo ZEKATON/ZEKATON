@@ -25,7 +25,6 @@ let timeLeft = 180;
 io.on('connection', (socket) => {
   console.log('Joueur connecté:', socket.id);
   
-  // Envoi de l'état actuel au nouveau connecté
   socket.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
 
   socket.on('join', (name) => {
@@ -53,7 +52,6 @@ io.on('connection', (socket) => {
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 
-  // --- CONTRÔLES ADMIN ---
   socket.on('admin:setNumbers', (nums) => { 
     console.log('Admin set numbers:', nums);
     numbersToGuess = nums; 
@@ -125,17 +123,24 @@ io.on('connection', (socket) => {
   });
 });
 
-// --- ROUTES & FICHIERS STATIQUES ---
+// --- ROUTES & FICHIERS STATIQUES (CORRIGÉ POUR RENDER) ---
 
-// On sert tous les fichiers présents dans le dossier "public" (html, css, js client)
-app.use(express.static(path.join(__dirname, 'public')));
+// On définit le chemin vers le dossier "public" à partir de la racine du projet
+const publicPath = path.join(process.cwd(), 'public');
 
-// Redirection vers les pages spécifiques
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+// Utilisation du dossier public pour les assets (CSS, images, JS client)
+app.use(express.static(publicPath));
 
-// --- LANCEMENT UNIQUE ---
-// On convertit en nombre et on ne le déclare QU'UNE FOIS
+// Routes vers les fichiers HTML
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(publicPath, 'admin.html'));
+});
+
+// --- LANCEMENT ---
 const PORT: number = Number(process.env.PORT) || 3000;
 
 httpServer.listen(PORT, '0.0.0.0', () => {
