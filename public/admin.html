@@ -24,21 +24,17 @@
         </div>
         <div id="timer" style="font-size: 2rem; color: #ff4d94;"></div>
         <div style="margin: 15px 0;">
-            <div style="margin-bottom: 10px;">
-                <button id="btnStartCard" onclick="socket.emit('admin:startCard')">Lancer Nouvelle Carte</button>
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button onclick="socket.emit('admin:prevCard')" style="background: #4d94ff; flex: 1;">◀ Carte Précédente</button>
-                <button onclick="socket.emit('admin:nextCard')" style="background: #4d94ff; flex: 1;">Carte Suivante ▶</button>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <button id="btnStartCard" onclick="socket.emit('admin:startCard')" style="flex: 2;">Lancer Nouvelle Carte</button>
+                <button onclick="socket.emit('admin:prevCard')" style="background: #4d94ff; flex: 1;">◀ Préc.</button>
+                <button onclick="socket.emit('admin:nextCard')" style="background: #4d94ff; flex: 1;">Suiv. ▶</button>
             </div>
         </div>
         <div style="margin: 15px 0;">
-            <div style="margin-bottom: 10px;">
-                <button id="btnStartQ" onclick="socket.emit('admin:startQuestion')">Lancer Question</button>
-            </div>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <button onclick="socket.emit('admin:prevQuestion')" style="background: #4d94ff; flex: 1;">◀ Question Précédente</button>
-                <button onclick="socket.emit('admin:nextQuestion')" style="background: #4d94ff; flex: 1;">Question Suivante ▶</button>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <button id="btnStartQ" onclick="socket.emit('admin:startQuestion')" style="flex: 2;">Lancer Question</button>
+                <button onclick="socket.emit('admin:prevQuestion')" style="background: #4d94ff; flex: 1;">◀ Préc.</button>
+                <button onclick="socket.emit('admin:nextQuestion')" style="background: #4d94ff; flex: 1;">Suiv. ▶</button>
             </div>
         </div>
         <button id="btnStopQ" onclick="socket.emit('admin:stopQuestion')">Arrêter Question</button>

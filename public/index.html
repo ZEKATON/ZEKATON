@@ -1,8 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head><style>
-    body { background: #0f0f2d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    .card { border: 2px solid #ff4d94; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+        background: #0f0f2d; 
+        color: #fff; 
+        font-family: sans-serif; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        padding: 20px;
+        min-height: 100vh;
+        font-size: 16px;
+    }
+    .card { 
+        border: 2px solid #ff4d94; 
+        padding: 25px; 
+        border-radius: 20px; 
+        width: 100%; 
+        max-width: 500px; 
+        text-align: center;
+        margin-bottom: 80px;
+        flex-grow: 1;
+        overflow-y: auto;
+        max-height: calc(100vh - 120px);
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 20px; }
+    h2 { font-size: 1.8rem; margin-bottom: 15px; color: #ff4d94; }
+    h3 { font-size: 1.3rem; margin: 15px 0; }
+    p { font-size: 1.1rem; margin: 10px 0; line-height: 1.5; }
+    input { 
+        font-size: 1rem; 
+        padding: 12px; 
+        margin: 10px 0; 
+        width: 100%; 
+        border: 2px solid #ff4d94; 
+        border-radius: 8px; 
+        background: #1a0b2e; 
+        color: #fff;
+    }
+    button { 
+        font-size: 1rem; 
+        padding: 12px 20px; 
+        margin: 10px 5px; 
+        background: #ff4d94; 
+        color: white; 
+        border: none; 
+        border-radius: 8px; 
+        cursor: pointer; 
+        font-weight: bold;
+        width: 100%;
+    }
+    button:active { background: #ff2d74; }
+    #timer { font-size: 3rem; color: #ff4d94; font-weight: bold; margin: 20px 0; }
+    #history { margin-top: 20px; }
+    #history > div { margin: 8px 0; padding: 8px; background: #1a0b2e; border-left: 3px solid #ff4d94; }
+    .leave-btn {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: #ff6b6b;
+        padding: 15px;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1000;
+        margin: 0;
+        border-radius: 0;
+    }
+    .leave-btn:active { background: #ff4545; }
+    
+    @media (max-width: 600px) {
+        body { padding: 15px; font-size: 14px; }
+        .card { 
+            padding: 20px; 
+            margin-bottom: 80px;
+            max-height: calc(100vh - 100px);
+        }
+        h1 { font-size: 1.8rem; margin-bottom: 15px; }
+        h2 { font-size: 1.4rem; }
+        h3 { font-size: 1.1rem; }
+        p { font-size: 1rem; }
+        input { font-size: 1rem; padding: 10px; }
+        button { font-size: 0.95rem; padding: 10px 15px; }
+        #timer { font-size: 2.5rem; }
+    }
+    
+    @media (max-width: 400px) {
+        h1 { font-size: 1.6rem; }
+        h2 { font-size: 1.2rem; }
+        p { font-size: 0.95rem; }
+        button { font-size: 0.9rem; padding: 10px; }
+        .leave-btn { font-size: 1rem; padding: 12px; }
+    }
 </style></head>
 <body>
     <div id="app" class="card">
@@ -12,6 +105,7 @@
             <input id="name" placeholder="Votre Nom"><button onclick="join()">S'inscrire</button>
         </div>
     </div>
+    <button id="leaveBtn" class="leave-btn" onclick="leaveGame()" style="display: none;">Partir</button>
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -25,8 +119,15 @@
         function leaveGame() {
             if(confirm('Êtes-vous sûr de vouloir partir du jeu ?')) {
                 socket.emit('player:leave');
-                document.getElementById('content').innerHTML = '<h2>Vous avez quitté le jeu.</h2><p>Merci d\'avoir participé !</p>';
+                document.getElementById('app').innerHTML = '<h1>ZEKATON</h1><h2>Vous avez quitté le jeu</h2><p>Merci d\'avoir participé !</p>';
+                document.getElementById('leaveBtn').style.display = 'none';
             }
+        }
+        function showLeaveBtn() {
+            document.getElementById('leaveBtn').style.display = 'block';
+        }
+        function hideLeaveBtn() {
+            document.getElementById('leaveBtn').style.display = 'none';
         }
         socket.on('connect', () => { myId = socket.id; });
         
@@ -37,21 +138,22 @@
             
             if(p.left) {
                 app.innerHTML = `<h1>ZEKATON</h1><h2>Vous avez quitté le jeu</h2><p>Merci d'avoir participé !</p>`;
+                hideLeaveBtn();
                 return;
             }
             
             if(data.gameState === 'GUESSING') {
                 app.innerHTML = `
                     <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
-                    <div id="timer" style="font-size: 2rem; color: #ff4d94;">${data.timeLeft}</div>
+                    <div id="timer">${data.timeLeft}</div>
                     ${p.history.some(h => h.question === data.currentQuestionIndex + 1) 
                         ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
                         : `<input id="guess" type="number" placeholder="Nombre (0-100)">
                            <button id="btn" onclick="socket.emit('guess', parseInt(document.getElementById('guess').value))">Valider</button>`
                     }
                     <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
-                    <button onclick="leaveGame()" style="background: #ff6b6b; margin-top: 15px; width: 100%; padding: 10px;">Partir</button>
                 `;
+                showLeaveBtn();
             } else if(data.gameState === 'CARD_FINISHED') {
                 const scoresHtml = Object.values(data.players)
                     .sort((a, b) => b.cardScore - a.cardScore)
@@ -64,8 +166,8 @@
                     <h2>Scores de la carte :</h2>
                     ${scoresHtml}
                     <p style="margin-top: 20px; color: #999;">Attente de l'administrateur...</p>
-                    <button onclick="leaveGame()" style="background: #ff6b6b; margin-top: 15px; width: 100%; padding: 10px;">Partir</button>
                 `;
+                showLeaveBtn();
             } else if(data.gameState === 'GAME_FINISHED') {
                 const allPlayers = Object.values(data.players).sort((a, b) => b.totalScore - a.totalScore);
                 const myPosition = allPlayers.findIndex(player => player.name === p.name) + 1;
@@ -95,8 +197,8 @@
                     <p style="font-size: 1.1rem; margin: 10px 0;">Votre score final : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
                     <h3 style="margin-top: 20px;">🏅 Classement Final :</h3>
                     ${classementHtml}
-                    <button onclick="leaveGame()" style="background: #ff6b6b; margin-top: 15px; width: 100%; padding: 10px;">Partir</button>
                 `;
+                showLeaveBtn();
             } else if(data.gameState === 'FEEDBACK') {
                 const lastHistory = p.history[p.history.length - 1];
                 app.innerHTML = `
@@ -105,16 +207,16 @@
                     <p>Score total : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
                     ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
                     <p>Attente du prochain tour...</p>
-                    <button onclick="leaveGame()" style="background: #ff6b6b; margin-top: 15px; width: 100%; padding: 10px;">Partir</button>
                 `;
+                showLeaveBtn();
             } else {
                 const questionNum = Math.min(data.currentQuestionIndex + 1, 4);
                 app.innerHTML = `
                     <h1>En attente...</h1>
                     <p>Zekaton, un jeu de questions fun où tout le monde peut gagner. Principe du jeu : sur chaque carte, 4 questions où il faut deviner un nombre entre 0 & 100.</p>
                     <p>Carte ${data.currentCardIndex + 1} - Question ${questionNum} à venir</p>
-                    <button onclick="leaveGame()" style="background: #ff6b6b; margin-top: 15px; width: 100%; padding: 10px;">Partir</button>
                 `;
+                showLeaveBtn();
             }
         });
         socket.on('timer', (t) => { 
