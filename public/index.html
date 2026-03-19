@@ -125,6 +125,8 @@
         }
         function submitGuess() {
             const guessInput = document.getElementById('guess');
+            if(!guessInput) return;
+            
             const guess = parseInt(guessInput.value);
             
             // Validation
@@ -140,6 +142,23 @@
             // Envoyer la réponse
             socket.emit('guess', guess);
             guessInput.value = '';
+        }
+        function attachQuestionEvents() {
+            const guessInput = document.getElementById('guess');
+            const btn = document.getElementById('btn');
+            
+            if(guessInput) {
+                guessInput.addEventListener('keypress', function(e) {
+                    if(e.key === 'Enter') {
+                        submitGuess();
+                    }
+                });
+                guessInput.focus();
+            }
+            
+            if(btn) {
+                btn.addEventListener('click', submitGuess);
+            }
         }
         function showLeaveBtn() {
             document.getElementById('leaveBtn').style.display = 'block';
