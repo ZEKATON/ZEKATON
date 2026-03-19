@@ -15,14 +15,10 @@
     <h1>ADMIN ZEKATON</h1>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
     <div id="game" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h2 id="status">En attente</h2>
-            <div>
-                <button id="btnFinish" onclick="if(confirm('Terminer le jeu ?')) socket.emit('admin:finishGame')" style="background: #ff6b6b; padding: 10px 20px; margin-left: 10px;">Terminer le jeu</button>
-                <button id="btnReset" onclick="if(confirm('Réinitialiser tout le jeu ?')) socket.emit('admin:resetGame')" style="background: #ff6b6b; padding: 10px 20px; margin-left: 10px;">Réinitialiser Jeu</button>
-            </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px;">
+            <button id="btnFinish" onclick="if(confirm('Terminer le jeu ?')) socket.emit('admin:finishGame')" style="background: #ff6b6b; padding: 10px 20px;">Terminer le jeu</button>
+            <button id="btnReset" onclick="if(confirm('Réinitialiser tout le jeu ?')) socket.emit('admin:resetGame')" style="background: #ff6b6b; padding: 10px 20px;">Réinitialiser Jeu</button>
         </div>
-        <div id="timer" style="font-size: 2rem; color: #ff4d94;"></div>
         <div style="margin: 15px 0;">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
                 <button id="btnStartCard" onclick="socket.emit('admin:startCard')" style="flex: 2;">Lancer Nouvelle Carte</button>
@@ -37,7 +33,11 @@
                 <button onclick="socket.emit('admin:nextQuestion')" style="background: #4d94ff; flex: 1;">Suiv. ▶</button>
             </div>
         </div>
-        <button id="btnStopQ" onclick="socket.emit('admin:stopQuestion')">Arrêter Question</button>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px;">
+            <button id="btnStopQ" onclick="socket.emit('admin:stopQuestion')" style="flex: 1;">Arrêter Question</button>
+            <div id="timer" style="font-size: 1.5rem; color: #ff4d94; font-weight: bold; flex: 1; text-align: center;"></div>
+        </div>
+        <h2 id="status" style="font-size: 1.2rem; margin-bottom: 15px; color: #ff4d94;">En attente</h2>
         <table border="1" style="width:100%; color:white; margin-top:20px; border-collapse: collapse;">
             <thead><tr style="background: #ff4d94;"><th style="width: 30%; padding: 10px;">Joueur</th><th style="width: 15%; padding: 10px;">Score Carte</th><th style="width: 15%; padding: 10px;">Score Total</th><th style="padding: 10px;">Trouvé</th><th style="width: 10%; padding: 10px;">Action</th></tr></thead><tbody id="playerTable"></tbody>
         </table>
