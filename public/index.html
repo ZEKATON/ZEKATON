@@ -123,6 +123,24 @@
                 document.getElementById('leaveBtn').style.display = 'none';
             }
         }
+        function submitGuess() {
+            const guessInput = document.getElementById('guess');
+            const guess = parseInt(guessInput.value);
+            
+            // Validation
+            if(!guessInput.value || isNaN(guess) || guess < 0 || guess > 100) {
+                alert('Veuillez entrer un nombre entre 0 et 100');
+                return;
+            }
+            
+            // Désactiver le bouton pour éviter les doubles clics
+            const btn = document.getElementById('btn');
+            if(btn) btn.disabled = true;
+            
+            // Envoyer la réponse
+            socket.emit('guess', guess);
+            guessInput.value = '';
+        }
         function showLeaveBtn() {
             document.getElementById('leaveBtn').style.display = 'block';
         }
@@ -148,8 +166,8 @@
                     <div id="timer">${data.timeLeft}</div>
                     ${p.history.some(h => h.question === data.currentQuestionIndex + 1) 
                         ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
-                        : `<input id="guess" type="number" placeholder="Nombre (0-100)">
-                           <button id="btn" onclick="socket.emit('guess', parseInt(document.getElementById('guess').value))">Valider</button>`
+                        : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100" onkeypress="if(event.key==='Enter') submitGuess()">
+                           <button id="btn" onclick="submitGuess()">Valider</button>`
                     }
                     <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                 `;
