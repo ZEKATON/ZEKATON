@@ -29,8 +29,32 @@ io.on('connection', (socket) => {
   socket.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
 
   socket.on('join', (name) => {
-    console.log('Joueur rejoint:', name);
-    players[socket.id] = { name, cardScore: 0, totalScore: 0, found: false, history: [], left: false };
+    console.log('Joueur rejoint:', name, 'socket:', socket.id);
+    
+    // Chercher si un joueur avec ce nom existe déjà
+    let existingPlayerKey: string | null = null;
+    for (let id in players) {
+      if (players[id].name === name) {
+        existingPlayerKey = id;
+        break;
+      }
+    }
+    
+    if (existingPlayerKey) {
+      // Réactiver le joueur existant - copier ses données à la nouvelle clé socket.id
+      console.log('Joueur reconnecté:', existingPlayerKey, '-> nouveau socket:', socket.id);
+      const existingPlayer = players[existingPlayerKey];
+      players[socket.id] = { ...existingPlayer, left: false };
+      // Supprimer l'ancienne entrée si la clé est différente
+      if (existingPlayerKey !== socket.id) {
+        delete players[existingPlayerKey];
+      }
+    } else {
+      // Créer un nouveau joueur
+      console.log('Nouveau joueur créé:', name);
+      players[socket.id] = { name, cardScore: 0, totalScore: 0, found: false, history: [], left: false };
+    }
+    
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 
@@ -148,6 +172,10 @@ io.on('connection', (socket) => {
     if (timer) clearInterval(timer);
     if (currentQuestionIndex < 3) {
       currentQuestionIndex++;
+    } else {
+      // Après la question 4, passer à la carte suivante
+      currentCardIndex++;
+      currentQuestionIndex = 0;
     }
     gameState = 'WAITING_FOR_QUESTION';
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
@@ -181,6 +209,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Joueur déconnecté:', socket.id);
+    // Les données du joueur restent en mémoire pour la reconnexion
+    // Rien n'est supprimé ici
   });
 });
 

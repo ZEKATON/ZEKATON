@@ -29,12 +29,13 @@
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
                 <button id="btnStartQ" onclick="socket.emit('admin:startQuestion')" style="flex: 2;">Lancer Question</button>
                 <button onclick="socket.emit('admin:prevQuestion')" style="background: #4d94ff; flex: 1;">◀ Préc.</button>
-                <button onclick="socket.emit('admin:nextQuestion')" style="background: #4d94ff; flex: 1;">Suiv. ▶</button>
+                <button id="btnNextQuestion" onclick="socket.emit('admin:nextQuestion')" style="background: #4d94ff; flex: 1;">Suiv. ▶</button>
             </div>
         </div>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
             <button id="btnStopQ" onclick="socket.emit('admin:stopQuestion')" style="flex: 1;">Arrêter Question</button>
             <div id="timer" style="font-size: 1.5rem; color: #ff4d94; font-weight: bold; flex: 1; text-align: center;"></div>
+            <div id="answersCount" style="font-size: 1.5rem; color: #00ff00; font-weight: bold; flex: 1; text-align: center; border: 1px solid #00ff00; padding: 5px; border-radius: 5px;">0/0</div>
         </div>
         <h2 id="status" style="font-size: 1.2rem; margin-bottom: 10px; color: #ff4d94;">En attente</h2>
         <table border="1" style="width:100%; color:white; margin-top:10px; border-collapse: collapse;">
@@ -51,6 +52,28 @@
             
             // Désactiver le bouton si la limite est atteinte ou si l'état n'est pas correct
             document.getElementById('btnStartQ').disabled = !((data.gameState === 'WAITING_FOR_QUESTION' || data.gameState === 'FEEDBACK') && data.currentQuestionIndex < 4);
+            
+            // Changer le label du bouton "Avancer Question" si on est à la Q4
+            const btnNextQuestion = document.getElementById('btnNextQuestion');
+            if(data.currentQuestionIndex === 3) {
+                btnNextQuestion.innerText = '🔄 Carte';
+            } else {
+                btnNextQuestion.innerText = 'Suiv. ▶';
+            }
+            
+            // Calculer le nombre de réponses
+            let answered = 0;
+            let total = 0;
+            for(let id in data.players) {
+                const p = data.players[id];
+                if(!p.left) {
+                    total++;
+                    if(p.history.some(h => h.question === data.currentQuestionIndex + 1)) {
+                        answered++;
+                    }
+                }
+            }
+            document.getElementById('answersCount').innerText = `${answered}/${total}`;
             
             let html = '';
             for(let id in data.players) {
