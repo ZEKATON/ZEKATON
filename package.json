@@ -1,0 +1,21 @@
+{
+  "name": "zekaton",
+  "version": "1.0.0",
+  "description": "Jeu multijoueur Zekaton",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0"
+  }
+}

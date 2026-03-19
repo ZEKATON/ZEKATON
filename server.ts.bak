@@ -1,0 +1,79 @@
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer);
+
+app.use(express.static(__dirname));
+
+// --- CONFIGURATION DU JEU ---
+const NUMBERS_TO_GUESS = [42, 15, 80, 7, 95, ...]; // Remplissez avec vos 30 nombres
+let currentNumberIndex = 0;
+let timeLeft = 180; // 3 minutes
+let timerInterval: NodeJS.Timeout | null = null;
+let roundActive = false;
+
+let gameState = {
+  players: {} as Record<string, { id: string, name: string, score: number, status: string }>,
+  currentNumber: null as number | null,
+  timeLeft: 180,
+  roundActive: false
+};
+
+function startNextNumber() {
+  if (currentNumberIndex >= NUMBERS_TO_GUESS.length) {
+    roundActive = false;
+    io.emit('gameOver', "Fin de la partie !");
+    return;
+  }
+
+  gameState.currentNumber = NUMBERS_TO_GUESS[currentNumberIndex];
+  gameState.timeLeft = 180;
+  gameState.roundActive = true;
+  currentNumberIndex++;
+
+  // Vérifier vignette (0 ou 5)
+  const isVignette = gameState.currentNumber % 5 === 0;
+  
+  io.emit('newNumber', { isVignette });
+  io.emit('gameStateUpdate', gameState);
+
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    gameState.timeLeft--;
+    io.emit('timerUpdate', gameState.timeLeft);
+    if (gameState.timeLeft <= 0) {
+      if (timerInterval) clearInterval(timerInterval);
+      gameState.roundActive = false;
+      io.emit('roundEnded');
+    }
+  }, 1000);
+}
+
+io.on('connection', (socket) => {
+  socket.on('join', (name) => {
+    gameState.players[socket.id] = { id: socket.id, name, score: 0, status: 'Prêt' };
+    io.emit('gameStateUpdate', gameState);
+  });
+
+  socket.on('guess', (guess) => {
+    if (!gameState.roundActive) return;
+    const player = gameState.players[socket.id];
+    if (player && guess === gameState.currentNumber) {
+      player.score += 10; // Points
+      player.status = 'Trouvé !';
+      io.emit('gameStateUpdate', gameState);
+    }
+  });
+
+  socket.on('admin:next', () => startNextNumber());
+});
+
+httpServer.listen(3000, '0.0.0.0', () => console.log('Serveur Zekaton lancé'));

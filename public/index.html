@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><style>
+    body { background: #0f0f2d; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .card { border: 2px solid #ff4d94; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+</style></head>
+<body>
+    <div id="app" class="card">
+        <h1>ZEKATON</h1>
+        <div id="content">
+            <p>Zekaton, un jeu de questions fun où tout le monde peut gagner. Principe du jeu : sur chaque carte, 4 questions où il faut deviner un nombre entre 0 & 100.</p>
+            <input id="name" placeholder="Votre Nom"><button onclick="join()">S'inscrire</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let myId = '';
+        function join() { 
+            const name = document.getElementById('name').value;
+            if(!name) return;
+            socket.emit('join', name); 
+            document.getElementById('content').innerHTML = '<h2>En attente...</h2>'; 
+        }
+        socket.on('connect', () => { myId = socket.id; });
+        
+        socket.on('update', (data) => {
+            if(!data.players[myId]) return;
+            const p = data.players[myId];
+            const app = document.getElementById('app');
+            
+            if(data.gameState === 'GUESSING') {
+                app.innerHTML = `
+                    <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
+                    <div id="timer" style="font-size: 2rem; color: #ff4d94;">${data.timeLeft}</div>
+                    ${p.history.some(h => h.question === data.currentQuestionIndex + 1) 
+                        ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
+                        : `<input id="guess" type="number" placeholder="Nombre (0-100)">
+                           <button id="btn" onclick="socket.emit('guess', parseInt(document.getElementById('guess').value))">Valider</button>`
+                    }
+                    <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
+                `;
+            } else if(data.gameState === 'CARD_FINISHED') {
+                app.innerHTML = `<h1>Carte terminée !</h1><h2>Votre score final : ${p.score}</h2><p>Attente de l'administrateur...</p>`;
+            } else if(data.gameState === 'FEEDBACK') {
+                const lastHistory = p.history[p.history.length - 1];
+                app.innerHTML = `
+                    <h1>Résultats</h1>
+                    <p>Votre score actuel : ${p.score}</p>
+                    ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
+                    <p>Attente du prochain tour...</p>
+                `;
+            } else {
+                app.innerHTML = `
+                    <h1>En attente...</h1>
+                    <p>Zekaton, un jeu de questions fun où tout le monde peut gagner. Principe du jeu : sur chaque carte, 4 questions où il faut deviner un nombre entre 0 & 100.</p>
+                    <p>Carte ${data.currentCardIndex + 1} - Question ${data.currentQuestionIndex + 1} à venir</p>
+                `;
+            }
+        });
+        socket.on('timer', (t) => { 
+            const timerEl = document.getElementById('timer');
+            if(timerEl) timerEl.innerText = t; 
+            if(t<=0) {
+                const btn = document.getElementById('btn');
+                if(btn) btn.disabled = true;
+            }
+        });
+        socket.on('feedback', (msg) => { 
+            const app = document.getElementById('app');
+            app.innerHTML += `<div id="feedback" style="margin-top:10px; font-weight:bold;">${msg}</div>`;
+        });
+    </script>
+</body>
+</html>

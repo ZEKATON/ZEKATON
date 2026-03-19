@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><style>
+    body { background: #1a0b2e; color: #ff4d94; font-family: 'Courier New', monospace; padding: 20px; }
+    button { background: #ff4d94; color: white; border: none; padding: 15px; margin: 5px; cursor: pointer; font-weight: bold; }
+    button:disabled { background: #555; }
+</style></head>
+<body>
+    <h1>ADMIN ZEKATON</h1>
+    <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
+    <div id="game" style="display:none;">
+        <h2 id="status">En attente</h2>
+        <div id="timer" style="font-size: 2rem; color: #ff4d94;"></div>
+        <button id="btnStartCard" onclick="socket.emit('admin:startCard')">Lancer Nouvelle Carte</button>
+        <button id="btnStartQ" onclick="socket.emit('admin:startQuestion')">Lancer Question</button>
+        <button id="btnStopQ" onclick="socket.emit('admin:stopQuestion')">Arrêter Question</button>
+        <button id="btnReset" onclick="if(confirm('Réinitialiser tout le jeu ?')) socket.emit('admin:resetGame')">Réinitialiser Jeu</button>
+        <table border="1" style="width:100%; color:white; margin-top:20px;">
+            <thead><tr><th style="width: 30%;">Joueur</th><th style="width: 20%;">Score Carte</th><th style="width: 20%;">Score Total</th><th>Trouvé</th><th style="width: 10%;">Action</th></tr></thead><tbody id="playerTable"></tbody>
+        </table>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        function setNums() { socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); document.getElementById('setup').style.display='none'; document.getElementById('game').style.display='block'; }
+        socket.on('update', (data) => {
+            document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | Question: ${data.currentQuestionIndex + 1} | État: ${data.gameState}`;
+            document.getElementById('timer').innerText = data.timeLeft;
+            
+            // Désactiver le bouton si la limite est atteinte ou si l'état n'est pas correct
+            document.getElementById('btnStartQ').disabled = !((data.gameState === 'WAITING_FOR_QUESTION' || data.gameState === 'FEEDBACK') && data.currentQuestionIndex < 4);
+            
+            let html = '';
+            for(let id in data.players) {
+                const p = data.players[id];
+                html += `<tr><td>${p.name}</td><td>${p.cardScore}</td><td>${p.totalScore}</td><td>${p.found ? '✅' : '❌'}</td><td><button onclick="socket.emit('admin:deletePlayer', '${id}')">Supprimer</button></td></tr>`;
+            }
+            document.getElementById('playerTable').innerHTML = html;
+        });
+        socket.on('timer', (t) => { document.getElementById('timer').innerText = t; });
+    </script>
+</body>
+</html>
