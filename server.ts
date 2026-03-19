@@ -30,8 +30,16 @@ io.on('connection', (socket) => {
 
   socket.on('join', (name) => {
     console.log('Joueur rejoint:', name);
-    players[socket.id] = { name, cardScore: 0, totalScore: 0, found: false, history: [] };
+    players[socket.id] = { name, cardScore: 0, totalScore: 0, found: false, history: [], left: false };
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
+  socket.on('player:leave', () => {
+    console.log('Joueur parti:', socket.id);
+    if (players[socket.id]) {
+      players[socket.id].left = true;
+      io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+    }
   });
 
   socket.on('guess', (guess) => {
@@ -102,6 +110,46 @@ io.on('connection', (socket) => {
     } else {
         gameState = 'FEEDBACK';
     }
+    io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
+  socket.on('admin:prevCard', () => {
+    console.log('Admin prev card');
+    if (timer) clearInterval(timer);
+    if (currentCardIndex > 0) {
+      currentCardIndex--;
+    }
+    currentQuestionIndex = 0;
+    gameState = 'WAITING_FOR_QUESTION';
+    io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
+  socket.on('admin:nextCard', () => {
+    console.log('Admin next card');
+    if (timer) clearInterval(timer);
+    currentCardIndex++;
+    currentQuestionIndex = 0;
+    gameState = 'WAITING_FOR_QUESTION';
+    io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
+  socket.on('admin:prevQuestion', () => {
+    console.log('Admin prev question');
+    if (timer) clearInterval(timer);
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+    }
+    gameState = 'WAITING_FOR_QUESTION';
+    io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
+  socket.on('admin:nextQuestion', () => {
+    console.log('Admin next question');
+    if (timer) clearInterval(timer);
+    if (currentQuestionIndex < 3) {
+      currentQuestionIndex++;
+    }
+    gameState = 'WAITING_FOR_QUESTION';
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 
