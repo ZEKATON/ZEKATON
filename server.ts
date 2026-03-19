@@ -143,3 +143,9 @@ httpServer.listen(PORT, '0.0.0.0', () => {
 });
 
 export {};
+// Remplace ton ancien bloc httpServer.listen par celui-ci :
+const PORT = Number(process.env.PORT) || 3000;
+
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 ZEKATON Serveur Live sur le port ${PORT}`);
+});
