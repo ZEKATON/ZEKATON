@@ -14,7 +14,8 @@ const io = new Server(httpServer, {
 
 // --- ÉTAT DU JEU ---
 let numbersToGuess: number[] = [];
-let currentCardIndex = -1;
+let currentCardIndex = 0;
+let cardsLaunched = 0;
 let currentQuestionIndex = 0; 
 let players: Record<string, { name: string, cardScore: number, totalScore: number, found: boolean, history: any[] }> = {};
 let gameState = 'WAITING_FOR_CARD'; 
@@ -55,12 +56,16 @@ io.on('connection', (socket) => {
   socket.on('admin:setNumbers', (nums) => { 
     console.log('Admin set numbers:', nums);
     numbersToGuess = nums; 
-    currentCardIndex = -1; 
+    currentCardIndex = 0;
+    cardsLaunched = 0;
   });
   
   socket.on('admin:startCard', () => {
     console.log('Admin start card');
-    currentCardIndex++;
+    if (cardsLaunched > 0) {
+      currentCardIndex++;
+    }
+    cardsLaunched++;
     currentQuestionIndex = 0;
     Object.values(players).forEach(p => { p.found = false; p.history = []; p.cardScore = 0; });
     gameState = 'WAITING_FOR_QUESTION';
@@ -106,11 +111,19 @@ io.on('connection', (socket) => {
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 
+  socket.on('admin:finishGame', () => {
+    console.log('Admin finish game');
+    if (timer) clearInterval(timer);
+    gameState = 'GAME_FINISHED';
+    io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
+  });
+
   socket.on('admin:resetGame', () => {
     console.log('Admin reset game');
     if (timer) clearInterval(timer);
     numbersToGuess = [];
-    currentCardIndex = -1;
+    currentCardIndex = 0;
+    cardsLaunched = 0;
     currentQuestionIndex = 0;
     players = {};
     gameState = 'WAITING_FOR_CARD';

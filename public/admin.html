@@ -9,7 +9,10 @@
     <h1>ADMIN ZEKATON</h1>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
     <div id="game" style="display:none;">
-        <h2 id="status">En attente</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 id="status">En attente</h2>
+            <button id="btnFinish" onclick="if(confirm('Terminer le jeu ?')) socket.emit('admin:finishGame')" style="background: #ff6b6b; padding: 10px 20px;">Terminer le jeu</button>
+        </div>
         <div id="timer" style="font-size: 2rem; color: #ff4d94;"></div>
         <button id="btnStartCard" onclick="socket.emit('admin:startCard')">Lancer Nouvelle Carte</button>
         <button id="btnStartQ" onclick="socket.emit('admin:startQuestion')">Lancer Question</button>

@@ -41,20 +41,63 @@
                     <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                 `;
             } else if(data.gameState === 'CARD_FINISHED') {
-                app.innerHTML = `<h1>Carte terminée !</h1><h2>Votre score final : ${p.score}</h2><p>Attente de l'administrateur...</p>`;
+                const scoresHtml = Object.values(data.players)
+                    .sort((a, b) => b.cardScore - a.cardScore)
+                    .map(player => `<div style="margin: 10px; padding: 10px; border: 1px solid #ff4d94; border-radius: 10px;">
+                        <strong>${player.name}</strong>: <span style="font-size: 1.3rem; color: #00ff00;">${player.cardScore}</span> points
+                    </div>`)
+                    .join('');
+                app.innerHTML = `
+                    <h1>Carte ${data.currentCardIndex + 1} - Terminée !</h1>
+                    <h2>Scores de la carte :</h2>
+                    ${scoresHtml}
+                    <p style="margin-top: 20px; color: #999;">Attente de l'administrateur...</p>
+                `;
+            } else if(data.gameState === 'GAME_FINISHED') {
+                const allPlayers = Object.values(data.players).sort((a, b) => b.totalScore - a.totalScore);
+                const myPosition = allPlayers.findIndex(player => player.name === p.name) + 1;
+                const totalPlayers = allPlayers.length;
+                
+                let congratMessage = '';
+                if(myPosition === 1) {
+                    congratMessage = '🏆 FÉLICITATIONS ! VOUS ÊTES LE CHAMPION ! 🏆';
+                } else if(myPosition === 2) {
+                    congratMessage = '🥈 Excellente performance ! Vous êtes 2e !';
+                } else if(myPosition === 3) {
+                    congratMessage = '🥉 Bravo ! Vous êtes 3e !';
+                } else {
+                    congratMessage = '👏 Merci d\'avoir joué !';
+                }
+                
+                const classementHtml = allPlayers
+                    .map((player, idx) => `<div style="margin: 10px; padding: 10px; border: 1px solid #ff4d94; border-radius: 10px;">
+                        <strong>#${idx + 1} ${player.name}</strong>: <span style="font-size: 1.3rem; color: #00ff00;">${player.totalScore}</span> points
+                    </div>`)
+                    .join('');
+                
+                app.innerHTML = `
+                    <h1>🎮 JEU TERMINÉ 🎮</h1>
+                    <h2 style="color: #00ff00; margin: 20px 0;">${congratMessage}</h2>
+                    <p style="font-size: 1.1rem; margin: 15px 0;">Votre position : <strong>#${myPosition}/${totalPlayers}</strong></p>
+                    <p style="font-size: 1.1rem; margin: 10px 0;">Votre score final : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
+                    <h3 style="margin-top: 20px;">🏅 Classement Final :</h3>
+                    ${classementHtml}
+                `;
             } else if(data.gameState === 'FEEDBACK') {
                 const lastHistory = p.history[p.history.length - 1];
                 app.innerHTML = `
                     <h1>Résultats</h1>
-                    <p>Votre score actuel : ${p.score}</p>
+                    <p>Votre score à cette carte : <strong style="color: #00ff00;">${p.cardScore}</strong> points</p>
+                    <p>Score total : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
                     ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
                     <p>Attente du prochain tour...</p>
                 `;
             } else {
+                const questionNum = Math.min(data.currentQuestionIndex + 1, 4);
                 app.innerHTML = `
                     <h1>En attente...</h1>
                     <p>Zekaton, un jeu de questions fun où tout le monde peut gagner. Principe du jeu : sur chaque carte, 4 questions où il faut deviner un nombre entre 0 & 100.</p>
-                    <p>Carte ${data.currentCardIndex + 1} - Question ${data.currentQuestionIndex + 1} à venir</p>
+                    <p>Carte ${data.currentCardIndex + 1} - Question ${questionNum} à venir</p>
                 `;
             }
         });
