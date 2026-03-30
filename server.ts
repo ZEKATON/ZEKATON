@@ -20,7 +20,7 @@ let currentQuestionIndex = 0;
 let players: Record<string, { name: string, cardScore: number, totalScore: number, found: boolean, history: any[], left: boolean }> = {};
 let gameState = 'WAITING_FOR_CARD'; 
 let timer: NodeJS.Timeout | null = null;
-let timeLeft = 180;
+let timeLeft = 30;
 
 // --- LOGIQUE SOCKET.IO ---
 io.on('connection', (socket) => {
@@ -70,7 +70,7 @@ io.on('connection', (socket) => {
     if (gameState !== 'GUESSING' || !players[socket.id] || players[socket.id].found) return;
     
     const target = numbersToGuess[currentCardIndex];
-    let feedback = guess > target ? "C'est moins !" : (guess < target ? "C'est plus !" : "BRAVO !");
+    let feedback = guess > target ? "C'est moins elevé !" : (guess < target ? "C'est plus elevé !" : "BRAVO !");
     
     players[socket.id].history.push({ question: currentQuestionIndex + 1, guess, feedback });
     
@@ -106,7 +106,7 @@ io.on('connection', (socket) => {
   socket.on('admin:startQuestion', () => {
     console.log('Admin start question');
     gameState = 'GUESSING';
-    timeLeft = 180;
+    timeLeft = 30;
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
     
     if (timer) clearInterval(timer);
@@ -202,7 +202,7 @@ io.on('connection', (socket) => {
     currentQuestionIndex = 0;
     players = {};
     gameState = 'WAITING_FOR_CARD';
-    timeLeft = 180;
+    timeLeft = 30;
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 

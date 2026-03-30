@@ -215,7 +215,16 @@
             
             if(data.gameState === 'GUESSING') {
                 const currentQuestion = data.currentQuestionIndex + 1;
-                const historyForDisplay = p.history.filter(h => h.question !== currentQuestion);
+                const historyForDisplay = p.history
+                    .filter(h => h.question !== currentQuestion)
+                    .slice()
+                    .reverse();
+                const historyRows = historyForDisplay.length
+                    ? historyForDisplay.map((h, idx) => {
+                        const rowColor = h.feedback.includes('BRAVO') ? '#00ff7f' : (h.feedback.includes('plus') ? '#ffb347' : '#ff7676');
+                        return `<div data-key="${h.question}-${h.guess}-${idx}" style="display:grid;grid-template-columns:1fr 2fr;gap:10px;padding:8px;border-bottom:1px solid #3a2a6e;"><div style="font-weight:bold;">${h.guess}</div><div style="color:${rowColor};font-weight:bold;">${h.feedback}</div></div>`;
+                    }).join('')
+                    : '<div style="padding:8px;color:#aaa;">Aucune tentative precedente</div>';
                 app.innerHTML = `
                     <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
                     <div id="timer">${data.timeLeft}</div>
@@ -226,7 +235,13 @@
                         : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100">
                            <button id="btn">Valider</button>`
                     }
-                          <div id="history"><h3>Historique</h3>${historyForDisplay.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
+                    <div id="history" style="margin-top:14px;text-align:left;">
+                        <h3>Tentatives precedentes</h3>
+                        <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;background:#22113f;border:1px solid #ff4d94;border-radius:8px;padding:8px;font-weight:bold;">
+                            <div>Valeur saisie</div><div>Indice recu</div>
+                        </div>
+                        <div style="border:1px solid #3a2a6e;border-top:none;border-radius:0 0 8px 8px;background:#1a0b2e;">${historyRows}</div>
+                    </div>
                 `;
                 showLeaveBtn();
                 if(!p.found) attachQuestionEvents();
@@ -278,13 +293,25 @@
                 showLeaveBtn();
             } else if(data.gameState === 'FEEDBACK') {
                 const lastHistory = p.history[p.history.length - 1];
-                const previousHistory = p.history.slice(0, -1);
+                const previousHistory = p.history.slice(0, -1).reverse();
+                const previousRows = previousHistory.length
+                    ? previousHistory.map((h, idx) => {
+                        const rowColor = h.feedback.includes('BRAVO') ? '#00ff7f' : (h.feedback.includes('plus') ? '#ffb347' : '#ff7676');
+                        return `<div data-key="${h.question}-${h.guess}-${idx}" style="display:grid;grid-template-columns:1fr 2fr;gap:10px;padding:8px;border-bottom:1px solid #3a2a6e;"><div style="font-weight:bold;">${h.guess}</div><div style="color:${rowColor};font-weight:bold;">${h.feedback}</div></div>`;
+                    }).join('')
+                    : '<div style="padding:8px;color:#aaa;">Aucune tentative precedente</div>';
                 app.innerHTML = `
                     <h1>Résultats</h1>
                     <p style="font-size: 2rem;">Votre score à cette carte : <strong style="color: #00ff00; font-size: 2.2rem;">${p.cardScore}</strong> points</p>
                     <p style="font-size: 2rem;">Score total : <strong style="color: #00ff00; font-size: 2.2rem;">${p.totalScore}</strong> points</p>
                     ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
-                    <div id="history"><h3>Historique</h3>${previousHistory.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
+                    <div id="history" style="margin-top:14px;text-align:left;">
+                        <h3>Tentatives precedentes</h3>
+                        <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;background:#22113f;border:1px solid #ff4d94;border-radius:8px;padding:8px;font-weight:bold;">
+                            <div>Valeur saisie</div><div>Indice recu</div>
+                        </div>
+                        <div style="border:1px solid #3a2a6e;border-top:none;border-radius:0 0 8px 8px;background:#1a0b2e;">${previousRows}</div>
+                    </div>
                     <p>Attente du prochain tour...</p>
                 `;
                 showLeaveBtn();
