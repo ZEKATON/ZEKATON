@@ -81,7 +81,6 @@ io.on('connection', (socket) => {
         players[socket.id].totalScore += points;
     }
     
-    socket.emit('feedback', feedback);
     io.emit('update', { players, gameState, currentCardIndex, currentQuestionIndex, timeLeft });
   });
 

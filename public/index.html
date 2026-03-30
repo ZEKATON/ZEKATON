@@ -217,7 +217,9 @@
                 app.innerHTML = `
                     <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
                     <div id="timer">${data.timeLeft}</div>
-                    ${p.history.some(h => h.question === data.currentQuestionIndex + 1) 
+                    ${p.found
+                        ? `<p>✅ Bonne reponse deja trouvee pour cette carte.</p><p>Attente de la prochaine carte...</p>`
+                        : p.history.some(h => h.question === data.currentQuestionIndex + 1) 
                         ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
                         : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100">
                            <button id="btn">Valider</button>`
@@ -225,7 +227,7 @@
                     <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                 `;
                 showLeaveBtn();
-                attachQuestionEvents();
+                if(!p.found) attachQuestionEvents();
             } else if(data.gameState === 'CARD_FINISHED') {
                 const scoresHtml = Object.values(data.players)
                     .sort((a, b) => b.cardScore - a.cardScore)
@@ -299,10 +301,6 @@
                 const btn = document.getElementById('btn');
                 if(btn) btn.disabled = true;
             }
-        });
-        socket.on('feedback', (msg) => { 
-            const app = document.getElementById('app');
-            app.innerHTML += `<div id="feedback" style="margin-top:10px; font-weight:bold;">${msg}</div>`;
         });
     </script>
 </body>
