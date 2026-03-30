@@ -214,6 +214,8 @@
             }
             
             if(data.gameState === 'GUESSING') {
+                const currentQuestion = data.currentQuestionIndex + 1;
+                const historyForDisplay = p.history.filter(h => h.question !== currentQuestion);
                 app.innerHTML = `
                     <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
                     <div id="timer">${data.timeLeft}</div>
@@ -224,7 +226,7 @@
                         : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100">
                            <button id="btn">Valider</button>`
                     }
-                    <div id="history"><h3>Historique</h3>${p.history.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
+                          <div id="history"><h3>Historique</h3>${historyForDisplay.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                 `;
                 showLeaveBtn();
                 if(!p.found) attachQuestionEvents();

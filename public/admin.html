@@ -98,7 +98,8 @@
             document.body.style.paddingTop = '78px';
         }
         socket.on('update', (data) => {
-            document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | Question: ${data.currentQuestionIndex + 1} | État: ${data.gameState}`;
+            const questionLabel = data.currentQuestionIndex >= 4 ? 'Fin de la carte' : `Question: ${data.currentQuestionIndex + 1}`;
+            document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | ${questionLabel} | État: ${data.gameState}`;
             document.getElementById('timer').innerText = data.timeLeft;
             const finalResults = document.getElementById('finalResults');
             const playersTable = document.getElementById('playerTable').closest('table');
