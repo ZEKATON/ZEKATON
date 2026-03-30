@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head><style>
-    body { background: #1a0b2e; color: #ff4d94; font-family: 'Courier New', monospace; padding: 10px; padding-top: 78px; }
+    body { background: #1a0b2e; color: #ff4d94; font-family: 'Courier New', monospace; padding: 10px; }
     button { background: #ff4d94; color: white; border: none; padding: 15px; margin: 5px; cursor: pointer; font-weight: bold; }
     button:disabled { background: #555; }
     table { border-collapse: collapse; }
@@ -12,7 +12,7 @@
     td { padding: 5px; border-right: 1px solid #ff4d94; }
 </style></head>
 <body>
-    <div id="topAdminBar" style="position:fixed;top:10px;left:10px;right:10px;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+    <div id="topAdminBar" style="position:fixed;top:10px;left:10px;right:10px;z-index:1000;display:none;align-items:center;justify-content:space-between;gap:10px;">
         <div id="adminActions" style="display:none;align-items:center;gap:10px;">
             <button id="btnFinish" onclick="if(confirm('Terminer la partie ?')) socket.emit('admin:finishGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Terminer la partie</button>
             <button id="btnReset" onclick="if(confirm('Réinitialiser la partie ?')) socket.emit('admin:resetGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Réinitialiser la partie</button>
@@ -25,6 +25,17 @@
         </div>
     </div>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
+    <div id="qrScreen" style="display:none;position:fixed;inset:0;background:#0f0820;z-index:900;">
+        <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+            <h2 style="color:#ffffff;margin-bottom:10px;">Scannez pour rejoindre ZEKATON</h2>
+            <p style="color:#ffb3d1;margin-bottom:18px;">https://zekaton.onrender.com</p>
+            <img id="qrImage" alt="QR Code Zekaton" style="width:min(90vw,90vh);max-width:900px;max-height:72vh;object-fit:contain;border:3px solid #ff4d94;border-radius:16px;background:#fff;padding:12px;" />
+        </div>
+        <div style="position:absolute;right:16px;bottom:16px;display:flex;gap:10px;">
+            <button onclick="backToSetup()" style="background:#4d94ff;padding:10px 16px;margin:0;">← Retour</button>
+            <button onclick="goToGameManagement()" style="background:#00b894;padding:10px 16px;margin:0;">Gestion du jeu →</button>
+        </div>
+    </div>
     <div id="game" style="display:none;">
         <div style="margin: 8px 0;">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
@@ -54,8 +65,9 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const playerUrl = window.location.origin;
+        const playerUrl = 'https://zekaton.onrender.com';
         document.getElementById('linkText').innerText = playerUrl;
+        document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=1200x1200&data=${encodeURIComponent(playerUrl)}`;
         function copyLink() {
             navigator.clipboard.writeText(playerUrl).then(() => {
                 const btn = document.getElementById('copyBtn');
@@ -66,8 +78,24 @@
         function setNums() { 
             socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); 
             document.getElementById('setup').style.display='none'; 
-            document.getElementById('game').style.display='block'; 
+            document.getElementById('qrScreen').style.display='block';
+            document.getElementById('topAdminBar').style.display='none';
+            document.body.style.paddingTop = '10px';
+        }
+        function backToSetup() {
+            document.getElementById('qrScreen').style.display='none';
+            document.getElementById('setup').style.display='block';
+            document.getElementById('game').style.display='none';
+            document.getElementById('topAdminBar').style.display='none';
+            document.body.style.paddingTop = '10px';
+        }
+        function goToGameManagement() {
+            document.getElementById('qrScreen').style.display='none';
+            document.getElementById('setup').style.display='none';
+            document.getElementById('game').style.display='block';
+            document.getElementById('topAdminBar').style.display='flex';
             document.getElementById('adminActions').style.display='flex';
+            document.body.style.paddingTop = '78px';
         }
         socket.on('update', (data) => {
             document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | Question: ${data.currentQuestionIndex + 1} | État: ${data.gameState}`;
