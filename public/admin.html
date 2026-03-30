@@ -18,6 +18,7 @@
             <button id="btnReset" onclick="if(confirm('Réinitialiser la partie ?')) socket.emit('admin:resetGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Réinitialiser la partie</button>
         </div>
         <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:6px 8px;display:inline-flex;align-items:center;gap:8px;width:680px;max-width:68vw;">
+            <span style="color:#ffffff;font-size:1rem;font-weight:900;letter-spacing:1px;text-shadow:0 0 4px rgba(255,255,255,0.9),0 0 10px rgba(255,255,255,0.8),0 0 18px rgba(255,255,255,0.6);">ZEKATON</span>
             <span style="color:#aaa;font-size:0.85rem;">🔗 Lien joueurs :</span>
             <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:460px;"></span>
             <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
