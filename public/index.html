@@ -278,11 +278,13 @@
                 showLeaveBtn();
             } else if(data.gameState === 'FEEDBACK') {
                 const lastHistory = p.history[p.history.length - 1];
+                const previousHistory = p.history.slice(0, -1);
                 app.innerHTML = `
                     <h1>Résultats</h1>
                     <p style="font-size: 2rem;">Votre score à cette carte : <strong style="color: #00ff00; font-size: 2.2rem;">${p.cardScore}</strong> points</p>
                     <p style="font-size: 2rem;">Score total : <strong style="color: #00ff00; font-size: 2.2rem;">${p.totalScore}</strong> points</p>
                     ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
+                    <div id="history"><h3>Historique</h3>${previousHistory.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                     <p>Attente du prochain tour...</p>
                 `;
                 showLeaveBtn();
