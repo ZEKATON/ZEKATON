@@ -9,26 +9,26 @@
         display: flex; 
         flex-direction: column; 
         align-items: center; 
-        padding: 20px;
+        padding: 12px;
         min-height: 100vh;
         font-size: 32px;
     }
     .card { 
         border: 2px solid #ff4d94; 
-        padding: 25px; 
+        padding: 30px; 
         border-radius: 20px; 
-        width: 100%; 
-        max-width: 750px; 
+        width: min(96vw, 1100px);
         text-align: center;
         margin-bottom: 80px;
         flex-grow: 1;
+        min-height: calc(100vh - 110px);
         overflow-y: auto;
-        max-height: calc(100vh - 120px);
+        max-height: calc(100vh - 100px);
     }
-    h1 { font-size: 5rem; margin-bottom: 20px; }
-    h2 { font-size: 3.6rem; margin-bottom: 15px; color: #ff4d94; }
-    h3 { font-size: 2.6rem; margin: 15px 0; }
-    p { font-size: 2.2rem; margin: 10px 0; line-height: 1.5; }
+    h1 { font-size: clamp(3.2rem, 8vw, 6rem); margin-bottom: 20px; }
+    h2 { font-size: clamp(2.2rem, 6vw, 4.2rem); margin-bottom: 15px; color: #ff4d94; }
+    h3 { font-size: clamp(1.8rem, 4.8vw, 3rem); margin: 15px 0; }
+    p { font-size: clamp(1.3rem, 3.2vw, 2.3rem); margin: 10px 0; line-height: 1.5; }
     input { 
         font-size: 2rem; 
         padding: 12px; 
@@ -52,7 +52,7 @@
         width: 100%;
     }
     button:active { background: #ff2d74; }
-    #timer { font-size: 6rem; color: #ff4d94; font-weight: bold; margin: 20px 0; }
+    #timer { font-size: clamp(5rem, 16vw, 8.2rem); color: #ff4d94; font-weight: bold; margin: 20px 0; }
     #history { margin-top: 20px; }
     #history > div { margin: 8px 0; padding: 8px; background: #1a0b2e; border-left: 3px solid #ff4d94; }
     .leave-btn {
@@ -74,11 +74,12 @@
     .leave-btn:active { background: #ff4545; }
     
     @media (max-width: 600px) {
-        body { padding: 15px; font-size: 28px; }
+        body { padding: 10px; font-size: 28px; }
         .card { 
-            padding: 20px; 
+            padding: 18px; 
             margin-bottom: 80px;
-            max-height: calc(100vh - 100px);
+            max-height: calc(100vh - 96px);
+            min-height: calc(100vh - 96px);
         }
         h1 { font-size: 3.6rem; margin-bottom: 15px; }
         h2 { font-size: 2.8rem; }
@@ -229,7 +230,7 @@
                 const scoresHtml = Object.values(data.players)
                     .sort((a, b) => b.cardScore - a.cardScore)
                     .map(player => `<div style="margin: 10px; padding: 10px; border: 1px solid #ff4d94; border-radius: 10px;">
-                        <strong>${player.name}</strong>: <span style="font-size: 1.3rem; color: #00ff00;">${player.cardScore}</span> points
+                        <strong>${player.name}</strong>: <span style="font-size: 2.1rem; color: #00ff00;">${player.cardScore}</span> points
                     </div>`)
                     .join('');
                 app.innerHTML = `
@@ -264,8 +265,8 @@
                 app.innerHTML = `
                     <h1>🎮 JEU TERMINÉ 🎮</h1>
                     <h2 style="color: #00ff00; margin: 20px 0;">${congratMessage}</h2>
-                    <p style="font-size: 1.1rem; margin: 15px 0;">Votre position : <strong>#${myPosition}/${totalPlayers}</strong></p>
-                    <p style="font-size: 1.1rem; margin: 10px 0;">Votre score final : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
+                    <p style="font-size: 2rem; margin: 15px 0;">Votre position : <strong>#${myPosition}/${totalPlayers}</strong></p>
+                    <p style="font-size: 2.3rem; margin: 10px 0;">Votre score final : <strong style="color: #00ff00; font-size: 2.6rem;">${p.totalScore}</strong> points</p>
                     <p style="font-size: 1rem; margin: 10px 0; color: #ffb3d1;">Retrouvez Zekaton sur zekaton.com</p>
                     <h3 style="margin-top: 20px;">🏅 Classement Final :</h3>
                     ${classementHtml}
@@ -275,8 +276,8 @@
                 const lastHistory = p.history[p.history.length - 1];
                 app.innerHTML = `
                     <h1>Résultats</h1>
-                    <p>Votre score à cette carte : <strong style="color: #00ff00;">${p.cardScore}</strong> points</p>
-                    <p>Score total : <strong style="color: #00ff00;">${p.totalScore}</strong> points</p>
+                    <p style="font-size: 2rem;">Votre score à cette carte : <strong style="color: #00ff00; font-size: 2.2rem;">${p.cardScore}</strong> points</p>
+                    <p style="font-size: 2rem;">Score total : <strong style="color: #00ff00; font-size: 2.2rem;">${p.totalScore}</strong> points</p>
                     ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
                     <p>Attente du prochain tour...</p>
                 `;
