@@ -110,15 +110,27 @@
     <script>
         const socket = io();
         let myId = '';
+        let playerName = localStorage.getItem('zekaton_name') || '';
+        let hasJoined = false;
+
+        if (playerName) {
+            document.getElementById('content').innerHTML = '<h2>Reconnexion...</h2><p style="color:#aaa;">' + playerName + '</p>';
+        }
+
         function join() { 
-            const name = document.getElementById('name').value;
+            const name = document.getElementById('name').value.trim();
             if(!name) return;
+            playerName = name;
+            localStorage.setItem('zekaton_name', name);
+            hasJoined = true;
             socket.emit('join', name); 
             document.getElementById('content').innerHTML = '<h2>En attente...</h2>'; 
         }
         function leaveGame() {
             if(confirm('Êtes-vous sûr de vouloir partir du jeu ?')) {
                 socket.emit('player:leave');
+                playerName = '';
+                localStorage.removeItem('zekaton_name');
                 document.getElementById('app').innerHTML = '<h1>ZEKATON</h1><h2>Vous avez quitté le jeu</h2><p>Merci d\'avoir participé !</p>';
                 document.getElementById('leaveBtn').style.display = 'none';
             }
@@ -166,7 +178,28 @@
         function hideLeaveBtn() {
             document.getElementById('leaveBtn').style.display = 'none';
         }
-        socket.on('connect', () => { myId = socket.id; });
+        socket.on('connect', () => { 
+            myId = socket.id;
+            const indicator = document.getElementById('reconnect-indicator');
+            if(indicator) indicator.remove();
+            if (playerName && !hasJoined) {
+                hasJoined = true;
+                socket.emit('join', playerName);
+            }
+        });
+        socket.on('disconnect', () => {
+            hasJoined = false;
+            if(playerName) {
+                const existing = document.getElementById('reconnect-indicator');
+                if (!existing) {
+                    const el = document.createElement('div');
+                    el.id = 'reconnect-indicator';
+                    el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff6b00;color:white;text-align:center;padding:10px;font-size:1.5rem;font-weight:bold;z-index:9999;';
+                    el.textContent = '🔄 Reconnexion en cours...';
+                    document.body.appendChild(el);
+                }
+            }
+        });
         
         socket.on('update', (data) => {
             if(!data.players[myId]) return;

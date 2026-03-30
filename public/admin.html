@@ -12,6 +12,11 @@
     td { padding: 5px; border-right: 1px solid #ff4d94; }
 </style></head>
 <body>
+    <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:10px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="color:#aaa;font-size:0.85rem;">🔗 Lien joueurs :</span>
+        <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.9rem;"></span>
+        <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
+    </div>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
     <div id="game" style="display:none;">
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
@@ -45,6 +50,15 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        const playerUrl = window.location.origin;
+        document.getElementById('linkText').innerText = playerUrl;
+        function copyLink() {
+            navigator.clipboard.writeText(playerUrl).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.innerText = '✅ Copié !';
+                setTimeout(() => btn.innerText = '📋 Copier', 2000);
+            });
+        }
         function setNums() { socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); document.getElementById('setup').style.display='none'; document.getElementById('game').style.display='block'; }
         socket.on('update', (data) => {
             document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | Question: ${data.currentQuestionIndex + 1} | État: ${data.gameState}`;
@@ -61,26 +75,21 @@
                 btnNextQuestion.innerText = 'Suiv. ▶';
             }
             
-            // Calculer le nombre de réponses
-            let answered = 0;
-            let total = 0;
-            for(let id in data.players) {
-                const p = data.players[id];
-                if(!p.left) {
-                    total++;
-                    if(p.history.some(h => h.question === data.currentQuestionIndex + 1)) {
-                        answered++;
-                    }
-                }
-            }
-            document.getElementById('answersCount').innerText = `${answered}/${total}`;
-            
+            const activePlayers = Object.values(data.players).filter(p => !p.left);
+            const answeredCount = activePlayers.filter(p => p.history.some(h => h.question === data.currentQuestionIndex + 1)).length;
+            document.getElementById('answersCount').innerText = `${answeredCount}/${activePlayers.length}`;
+
             let html = '';
             for(let id in data.players) {
                 const p = data.players[id];
                 const nameColor = p.left ? '#ff6b6b' : '#ff4d94';
                 const nameStyle = p.left ? 'text-decoration: line-through;' : '';
-                html += `<tr style="border-bottom: 1px solid #ff4d94;"><td style="padding: 10px; color: ${nameColor}; ${nameStyle}">${p.name}</td><td style="padding: 10px; text-align: center; color: #00ff00; font-weight: bold; font-size: 1.1rem;">${p.cardScore}</td><td style="padding: 10px; text-align: center; color: #00ff00; font-weight: bold; font-size: 1.1rem;">${p.totalScore}</td><td style="padding: 10px; text-align: center;">${p.found ? '✅' : '❌'}</td><td style="padding: 10px;"><button onclick="socket.emit('admin:deletePlayer', '${id}')">Supprimer</button></td></tr>`;
+                // En FEEDBACK, currentQuestionIndex a déjà été incrémenté côté serveur, on compare donc sans +1
+                const checkQ = (data.gameState === 'FEEDBACK') ? data.currentQuestionIndex : data.currentQuestionIndex + 1;
+                const hasAnswered = Array.isArray(p.history) && p.history.some(h => h.question === checkQ);
+                const isActive = data.gameState === 'GUESSING' || data.gameState === 'FEEDBACK';
+                const indicatorColor = !isActive ? '#888888' : (hasAnswered ? '#00ff00' : '#ff2222');
+                html += `<tr style="border-bottom: 1px solid #ff4d94;"><td style="padding: 10px; color: ${nameColor}; ${nameStyle}"><span style="display:inline-block;width:14px;height:14px;border-radius:3px;background-color:${indicatorColor};border:1px solid rgba(255,255,255,0.4);margin-right:8px;vertical-align:middle;flex-shrink:0;"></span>${p.name}</td><td style="padding: 10px; text-align: center; color: #00ff00; font-weight: bold; font-size: 1.1rem;">${p.cardScore}</td><td style="padding: 10px; text-align: center; color: #00ff00; font-weight: bold; font-size: 1.1rem;">${p.totalScore}</td><td style="padding: 10px; text-align: center;">${p.found ? '✅' : '❌'}</td><td style="padding: 10px;"><button onclick="socket.emit('admin:deletePlayer', '${id}')">Supprimer</button></td></tr>`;
             }
             document.getElementById('playerTable').innerHTML = html;
         });
