@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head><style>
-    body { background: #1a0b2e; color: #ff4d94; font-family: 'Courier New', monospace; padding: 10px; }
+    body { background: #1a0b2e; color: #ff4d94; font-family: 'Courier New', monospace; padding: 10px; padding-top: 78px; }
     button { background: #ff4d94; color: white; border: none; padding: 15px; margin: 5px; cursor: pointer; font-weight: bold; }
     button:disabled { background: #555; }
     table { border-collapse: collapse; }
@@ -12,17 +12,19 @@
     td { padding: 5px; border-right: 1px solid #ff4d94; }
 </style></head>
 <body>
-    <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:6px 8px;display:inline-flex;align-items:center;gap:8px;position:fixed;top:10px;right:10px;z-index:1000;max-width:340px;">
-        <span style="color:#aaa;font-size:0.85rem;">🔗 Lien joueurs :</span>
-        <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;"></span>
-        <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
+    <div id="topAdminBar" style="position:fixed;top:10px;left:10px;right:10px;z-index:1000;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div id="adminActions" style="display:none;align-items:center;gap:10px;">
+            <button id="btnFinish" onclick="if(confirm('Terminer la partie ?')) socket.emit('admin:finishGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Terminer la partie</button>
+            <button id="btnReset" onclick="if(confirm('Réinitialiser la partie ?')) socket.emit('admin:resetGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Réinitialiser la partie</button>
+        </div>
+        <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:6px 8px;display:inline-flex;align-items:center;gap:8px;width:680px;max-width:68vw;">
+            <span style="color:#aaa;font-size:0.85rem;">🔗 Lien joueurs :</span>
+            <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:460px;"></span>
+            <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
+        </div>
     </div>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
     <div id="game" style="display:none;">
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;">
-            <button id="btnFinish" onclick="if(confirm('Terminer le jeu ?')) socket.emit('admin:finishGame')" style="background: #ff6b6b; padding: 10px 20px;">Terminer le jeu</button>
-            <button id="btnReset" onclick="if(confirm('Réinitialiser tout le jeu ?')) socket.emit('admin:resetGame')" style="background: #ff6b6b; padding: 10px 20px;">Réinitialiser Jeu</button>
-        </div>
         <div style="margin: 8px 0;">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
                 <button id="btnStartCard" onclick="socket.emit('admin:startCard')" style="flex: 2;">Lancer Nouvelle Carte</button>
@@ -60,7 +62,12 @@
                 setTimeout(() => btn.innerText = '📋 Copier', 2000);
             });
         }
-        function setNums() { socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); document.getElementById('setup').style.display='none'; document.getElementById('game').style.display='block'; }
+        function setNums() { 
+            socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); 
+            document.getElementById('setup').style.display='none'; 
+            document.getElementById('game').style.display='block'; 
+            document.getElementById('adminActions').style.display='flex';
+        }
         socket.on('update', (data) => {
             document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | Question: ${data.currentQuestionIndex + 1} | État: ${data.gameState}`;
             document.getElementById('timer').innerText = data.timeLeft;
