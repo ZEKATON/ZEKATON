@@ -220,7 +220,11 @@
                     <h1>Carte ${data.currentCardIndex + 1} - Q${data.currentQuestionIndex + 1}</h1>
                     <div id="timer">${data.timeLeft}</div>
                     ${p.found
-                        ? `<p>✅ Bonne reponse deja trouvee pour cette carte.</p><p>Attente de la prochaine carte...</p>`
+                        ? `<div style="margin:30px 0;padding:28px;border-radius:16px;background:#0a2a1a;border:3px solid #00ff7f;">
+                               <div style="font-size:4rem;">✅</div>
+                               <p style="font-size:3rem;color:#00ff7f;font-weight:bold;margin:12px 0;">Bonne réponse trouvée !</p>
+                               <p style="font-size:2.2rem;color:#aaa;">En attente de la prochaine carte...</p>
+                           </div>`
                         : p.history.some(h => h.question === data.currentQuestionIndex + 1) 
                         ? `<p>Réponse envoyée. Attente de la fin du chrono...</p>` 
                         : `<input id="guess" type="number" placeholder="Nombre (0-100)" min="0" max="100">
