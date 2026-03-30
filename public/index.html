@@ -11,7 +11,7 @@
         align-items: center; 
         padding: 12px;
         min-height: 100vh;
-        font-size: 32px;
+        font-size: 48px;
     }
     .card { 
         border: 2px solid #ff4d94; 
@@ -25,13 +25,13 @@
         overflow-y: auto;
         max-height: calc(100vh - 100px);
     }
-    h1 { font-size: clamp(3.2rem, 8vw, 6rem); margin-bottom: 20px; }
-    h2 { font-size: clamp(2.2rem, 6vw, 4.2rem); margin-bottom: 15px; color: #ff4d94; }
-    h3 { font-size: clamp(1.8rem, 4.8vw, 3rem); margin: 15px 0; }
-    p { font-size: clamp(1.3rem, 3.2vw, 2.3rem); margin: 10px 0; line-height: 1.5; }
+    h1 { font-size: clamp(4.8rem, 10vw, 8rem); margin-bottom: 20px; }
+    h2 { font-size: clamp(3.3rem, 8vw, 6rem); margin-bottom: 15px; color: #ff4d94; }
+    h3 { font-size: clamp(2.7rem, 6vw, 4.5rem); margin: 15px 0; }
+    p { font-size: clamp(2rem, 4.5vw, 3.4rem); margin: 10px 0; line-height: 1.5; }
     input { 
-        font-size: 2rem; 
-        padding: 12px; 
+        font-size: 3rem; 
+        padding: 16px; 
         margin: 10px 0; 
         width: 100%; 
         border: 2px solid #ff4d94; 
@@ -40,8 +40,8 @@
         color: #fff;
     }
     button { 
-        font-size: 2rem; 
-        padding: 12px 20px; 
+        font-size: 3rem; 
+        padding: 16px 24px; 
         margin: 10px 5px; 
         background: #ff4d94; 
         color: white; 
@@ -52,9 +52,9 @@
         width: 100%;
     }
     button:active { background: #ff2d74; }
-    #timer { font-size: clamp(5rem, 16vw, 8.2rem); color: #ff4d94; font-weight: bold; margin: 20px 0; }
+    #timer { font-size: clamp(7rem, 20vw, 12rem); color: #ff4d94; font-weight: bold; margin: 20px 0; }
     #history { margin-top: 20px; }
-    #history > div { margin: 8px 0; padding: 8px; background: #1a0b2e; border-left: 3px solid #ff4d94; }
+    #history > div { margin: 8px 0; padding: 12px; background: #1a0b2e; border-left: 4px solid #ff4d94; font-size: 2rem; }
     .leave-btn {
         position: fixed;
         bottom: 0;
@@ -62,9 +62,9 @@
         right: 0;
         width: 100%;
         background: #ff6b6b;
-        padding: 15px;
+        padding: 18px;
         border: none;
-        font-size: 2.2rem;
+        font-size: 3rem;
         font-weight: bold;
         cursor: pointer;
         z-index: 1000;
@@ -74,28 +74,28 @@
     .leave-btn:active { background: #ff4545; }
     
     @media (max-width: 600px) {
-        body { padding: 10px; font-size: 28px; }
+        body { padding: 10px; font-size: 42px; }
         .card { 
             padding: 18px; 
-            margin-bottom: 80px;
-            max-height: calc(100vh - 96px);
-            min-height: calc(100vh - 96px);
+            margin-bottom: 90px;
+            max-height: calc(100vh - 106px);
+            min-height: calc(100vh - 106px);
         }
-        h1 { font-size: 3.6rem; margin-bottom: 15px; }
-        h2 { font-size: 2.8rem; }
-        h3 { font-size: 2.2rem; }
-        p { font-size: 2rem; }
-        input { font-size: 2rem; padding: 10px; }
-        button { font-size: 1.9rem; padding: 10px 15px; }
-        #timer { font-size: 5rem; }
+        h1 { font-size: 5rem; margin-bottom: 15px; }
+        h2 { font-size: 4rem; }
+        h3 { font-size: 3.2rem; }
+        p { font-size: 2.8rem; }
+        input { font-size: 2.8rem; padding: 14px; }
+        button { font-size: 2.7rem; padding: 14px 18px; }
+        #timer { font-size: 7rem; }
     }
     
     @media (max-width: 400px) {
-        h1 { font-size: 3.2rem; }
-        h2 { font-size: 2.4rem; }
-        p { font-size: 1.9rem; }
-        button { font-size: 1.8rem; padding: 10px; }
-        .leave-btn { font-size: 2rem; padding: 12px; }
+        h1 { font-size: 4.6rem; }
+        h2 { font-size: 3.5rem; }
+        p { font-size: 2.6rem; }
+        button { font-size: 2.5rem; padding: 12px; }
+        .leave-btn { font-size: 2.8rem; padding: 14px; }
     }
 </style></head>
 <body>
@@ -283,7 +283,7 @@
                     <h1>Résultats</h1>
                     <p style="font-size: 2rem;">Votre score à cette carte : <strong style="color: #00ff00; font-size: 2.2rem;">${p.cardScore}</strong> points</p>
                     <p style="font-size: 2rem;">Score total : <strong style="color: #00ff00; font-size: 2.2rem;">${p.totalScore}</strong> points</p>
-                    ${lastHistory ? `<p>Dernière réponse : ${lastHistory.guess} - ${lastHistory.feedback}</p>` : ''}
+                    ${lastHistory ? `<div style="margin:24px 0;padding:20px;border-radius:14px;background:#1a0b2e;border:3px solid #ff4d94;"><p style="font-size:2.4rem;color:#ff4d94;font-weight:bold;margin-bottom:10px;">Dernière réponse</p><p style="font-size:3.8rem;font-weight:900;color:${lastHistory.feedback.includes('BRAVO') ? '#00ff7f' : (lastHistory.feedback.includes('plus') ? '#ffb347' : '#ff7676')};letter-spacing:1px;">${lastHistory.feedback}</p><p style="font-size:2rem;color:#aaa;margin-top:8px;">Valeur saisie : <strong style="color:#fff;">${lastHistory.guess}</strong></p></div>` : ''}
                     <div id="history"><h3>Historique</h3>${previousHistory.map(h=>`<div>Q${h.question}: ${h.guess} -> ${h.feedback}</div>`).join('')}</div>
                     <p>Attente du prochain tour...</p>
                 `;
