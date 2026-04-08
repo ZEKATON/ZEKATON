@@ -650,6 +650,10 @@
                 <div class="stat">
                     <span class="stat-label">Carte :</span>
                     <span class="stat-value" id="currentCard">1</span>
+                                </div>
+                                <div class="stat" style="align-items:center;">
+                                    <span id="connectionDot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#555;margin-right:5px;flex-shrink:0;"></span>
+                                    <span class="stat-value" id="connectionLabel" style="font-size:0.8em;">...</span>
                 </div>
                 <div class="stat">
                     <span class="stat-label">Question :</span>
@@ -695,6 +699,15 @@
         const fullscreenPrompt = document.getElementById('fullscreenPrompt');
         const fullscreenButton = document.getElementById('fullscreenButton');
         let previousRanking = [];
+
+        const connectionDot = document.getElementById('connectionDot');
+        const connectionLabel = document.getElementById('connectionLabel');
+        function setConnectionStatus(connected) {
+            connectionDot.style.background = connected ? '#7dffb3' : '#ff4d94';
+            connectionLabel.innerText = connected ? 'Connecté' : 'Déconnecté';
+        }
+        socket.on('connect', () => setConnectionStatus(true));
+        socket.on('disconnect', () => setConnectionStatus(false));
 
         async function requestProjectionFullscreen() {
             if (document.fullscreenElement) {
