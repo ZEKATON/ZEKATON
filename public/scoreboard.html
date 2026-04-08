@@ -868,18 +868,25 @@
         }
 
         socket.on('update', (data) => {
-            const ranking = Object.values(data.players)
+            const playersObject = (data && data.players && typeof data.players === 'object') ? data.players : {};
+            const ranking = Object.values(playersObject)
+                .filter(player => player && typeof player === 'object')
                 .sort((a, b) => {
-                    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
-                    return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+                    const scoreA = Number(a.totalScore || 0);
+                    const scoreB = Number(b.totalScore || 0);
+                    if (scoreB !== scoreA) return scoreB - scoreA;
+                    return String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' });
                 });
+
+            const currentCardIndex = Number(data.currentCardIndex || 0);
+            const currentQuestionIndex = Number(data.currentQuestionIndex || 0);
 
             document.getElementById('gameState').innerText = formatState(data.gameState);
             document.getElementById('playerCount').innerText = String(ranking.length);
-            document.getElementById('currentCard').innerText = `Carte ${data.currentCardIndex + 1}`;
-            document.getElementById('currentQuestion').innerText = data.currentQuestionIndex >= 4
+            document.getElementById('currentCard').innerText = `Carte ${currentCardIndex + 1}`;
+            document.getElementById('currentQuestion').innerText = currentQuestionIndex >= 4
                 ? 'Terminée'
-                : `Q${data.currentQuestionIndex + 1}`;
+                : `Q${currentQuestionIndex + 1}`;
             document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('fr-FR');
 
             renderPodium(ranking, data.gameState);
