@@ -27,17 +27,44 @@ let timer = null;
 let timeLeft = 180;
 function getLanOrigins(port) {
     const interfaces = os_1.default.networkInterfaces();
-    const origins = new Set();
+    const scoredOrigins = [];
+    function scoreIpv4Address(ip) {
+        // 169.254.x.x is link-local and usually not reachable from phones on Wi-Fi.
+        if (ip.startsWith('169.254.'))
+            return -100;
+        if (ip.startsWith('192.168.'))
+            return 100;
+        if (ip.startsWith('10.'))
+            return 90;
+        const parts = ip.split('.').map(Number);
+        if (parts.length === 4 && parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) {
+            return 80;
+        }
+        // Keep other IPv4 as last-resort fallbacks.
+        return 10;
+    }
     for (const networkInterface of Object.values(interfaces)) {
         if (!networkInterface)
             continue;
         for (const address of networkInterface) {
             if (address.family === 'IPv4' && !address.internal) {
-                origins.add(`http://${address.address}:${port}`);
+                const score = scoreIpv4Address(address.address);
+                if (score > 0) {
+                    scoredOrigins.push({ origin: `http://${address.address}:${port}`, score });
+                }
             }
         }
     }
-    return Array.from(origins);
+    const uniqueByOrigin = new Map();
+    for (const item of scoredOrigins) {
+        const existingScore = uniqueByOrigin.get(item.origin);
+        if (existingScore === undefined || item.score > existingScore) {
+            uniqueByOrigin.set(item.origin, item.score);
+        }
+    }
+    return Array.from(uniqueByOrigin.entries())
+        .sort((a, b) => b[1] - a[1])
+        .map(([origin]) => origin);
 }
 // --- LOGIQUE SOCKET.IO ---
 io.on('connection', (socket) => {
