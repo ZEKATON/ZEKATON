@@ -87,7 +87,7 @@
         const PUBLIC_ORIGIN = 'https://zekaton.onrender.com';
         const NETWORK_ORIGIN_KEY = 'zekaton_network_origin';
         let customOrigin = localStorage.getItem(NETWORK_ORIGIN_KEY) || '';
-        let playerUrl = customOrigin || PUBLIC_ORIGIN;
+        let playerUrl = customOrigin || window.location.origin;
         let scoreUrl = `${playerUrl}/scores?fs=1`;
 
         function updateDisplayedUrls() {
@@ -151,7 +151,7 @@
                 const response = await fetch('/api/connection-info');
                 if (!response.ok) return;
                 const info = await response.json();
-                const preferredOrigin = customOrigin || PUBLIC_ORIGIN;
+                const preferredOrigin = customOrigin || window.location.origin;
 
                 playerUrl = `${preferredOrigin}${info.playerPath}`;
                 scoreUrl = `${preferredOrigin}${info.scoreboardPath}`;
