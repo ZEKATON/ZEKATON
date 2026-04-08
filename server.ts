@@ -1,6 +1,7 @@
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import os from 'os';
 import path from 'path';
 
 const app = express();
@@ -21,6 +22,23 @@ let players: Record<string, { name: string, cardScore: number, totalScore: numbe
 let gameState = 'WAITING_FOR_CARD'; 
 let timer: NodeJS.Timeout | null = null;
 let timeLeft = 180;
+
+function getLanOrigins(port: number): string[] {
+  const interfaces = os.networkInterfaces();
+  const origins = new Set<string>();
+
+  for (const networkInterface of Object.values(interfaces)) {
+    if (!networkInterface) continue;
+
+    for (const address of networkInterface) {
+      if (address.family === 'IPv4' && !address.internal) {
+        origins.add(`http://${address.address}:${port}`);
+      }
+    }
+  }
+
+  return Array.from(origins);
+}
 
 // --- LOGIQUE SOCKET.IO ---
 io.on('connection', (socket) => {
@@ -228,6 +246,26 @@ app.get('/', (req, res) => {
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(publicPath, 'admin.html'));
+});
+
+app.get('/scores', (req, res) => {
+  res.sendFile(path.join(publicPath, 'scoreboard.html'));
+});
+
+app.get('/api/connection-info', (req, res) => {
+  const hostHeader = req.get('host') || `localhost:${PORT}`;
+  const protocol = req.protocol || 'http';
+  const currentOrigin = `${protocol}://${hostHeader}`;
+  const portFromHost = Number(hostHeader.split(':')[1]) || PORT;
+  const lanOrigins = getLanOrigins(portFromHost);
+
+  res.json({
+    currentOrigin,
+    lanOrigins,
+    playerPath: '/',
+    adminPath: '/admin',
+    scoreboardPath: '/scores?fs=1'
+  });
 });
 
 // --- LANCEMENT ---

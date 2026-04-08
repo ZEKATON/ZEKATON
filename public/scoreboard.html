@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZEKATON - Classement</title>
+    <style>
+        :root {
+            --bg-start: #12081f;
+            --bg-end: #251144;
+            --panel: rgba(14, 7, 28, 0.84);
+            --panel-border: rgba(255, 77, 148, 0.35);
+            --accent: #ff4d94;
+            --accent-soft: #ffb3d1;
+            --success: #7dffb3;
+            --text: #fff7fb;
+            --muted: #c8b6d8;
+            --gold: #ffd166;
+            --silver: #d9e4f5;
+            --bronze: #ffb089;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(255, 77, 148, 0.18), transparent 30%),
+                radial-gradient(circle at top right, rgba(125, 255, 179, 0.14), transparent 25%),
+                linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            overflow: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            border-radius: 999px;
+            filter: blur(6px);
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 24vw;
+            height: 24vw;
+            min-width: 180px;
+            min-height: 180px;
+            background: rgba(255, 77, 148, 0.18);
+            top: -6vw;
+            right: -4vw;
+        }
+
+        body::after {
+            width: 28vw;
+            height: 28vw;
+            min-width: 220px;
+            min-height: 220px;
+            background: rgba(125, 255, 179, 0.10);
+            left: -8vw;
+            bottom: -10vw;
+        }
+
+        .layout {
+            position: relative;
+            min-height: 100vh;
+            padding: 3vh 3vw;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5vh;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 1.5vw;
+            align-items: stretch;
+        }
+
+        .hero,
+        .meta,
+        .scoreboard {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 28px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 18px 80px rgba(0, 0, 0, 0.28);
+        }
+
+        .hero {
+            padding: 2.2rem 2.6rem;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.9rem;
+            margin-bottom: 1rem;
+            color: var(--accent-soft);
+            font-weight: 900;
+            letter-spacing: 0.18rem;
+            text-transform: uppercase;
+            font-size: clamp(0.95rem, 1.4vw, 1.25rem);
+        }
+
+        .brand-mark {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--success), var(--accent));
+            box-shadow: 0 0 16px rgba(255, 77, 148, 0.55);
+        }
+
+        h1 {
+            font-size: clamp(2.8rem, 5.5vw, 5.8rem);
+            line-height: 0.95;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: clamp(1.05rem, 1.7vw, 1.6rem);
+            max-width: 32ch;
+            line-height: 1.45;
+        }
+
+        .meta {
+            padding: 1.8rem;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .stat {
+            padding: 1.2rem 1.25rem;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat-label {
+            display: block;
+            color: var(--accent-soft);
+            font-size: clamp(0.8rem, 1vw, 0.95rem);
+            text-transform: uppercase;
+            letter-spacing: 0.12rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .stat-value {
+            font-size: clamp(1.4rem, 2.1vw, 2.1rem);
+            font-weight: 800;
+        }
+
+        .scoreboard {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .podium {
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .podium.visible {
+            display: grid;
+        }
+
+        .podium-card {
+            position: relative;
+            overflow: hidden;
+            min-height: 200px;
+            padding: 1.3rem;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
+            animation: podiumReveal 0.8s ease-out both;
+        }
+
+        .podium-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -18% -35% auto;
+            width: 150px;
+            height: 150px;
+            border-radius: 999px;
+            opacity: 0.28;
+            filter: blur(4px);
+        }
+
+        .podium-rank {
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14rem;
+            color: var(--accent-soft);
+            margin-bottom: 0.65rem;
+        }
+
+        .podium-medal {
+            font-size: clamp(2.2rem, 3vw, 3rem);
+            margin-bottom: 0.6rem;
+        }
+
+        .podium-name {
+            font-size: clamp(1.4rem, 2vw, 2.1rem);
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+        }
+
+        .podium-score {
+            font-size: clamp(1.8rem, 2.7vw, 2.7rem);
+            font-weight: 900;
+            color: var(--success);
+            margin-bottom: 0.4rem;
+        }
+
+        .podium-card.first {
+            background: linear-gradient(180deg, rgba(255, 209, 102, 0.22), rgba(255, 255, 255, 0.05));
+            border-color: rgba(255, 209, 102, 0.46);
+            transform: translateY(-14px);
+        }
+
+        .podium-card.first::after {
+            background: rgba(255, 209, 102, 0.55);
+        }
+
+        .podium-card.second {
+            background: linear-gradient(180deg, rgba(217, 228, 245, 0.18), rgba(255, 255, 255, 0.04));
+            border-color: rgba(217, 228, 245, 0.36);
+        }
+
+        .podium-card.second::after {
+            background: rgba(217, 228, 245, 0.48);
+        }
+
+        .podium-card.third {
+            background: linear-gradient(180deg, rgba(255, 176, 137, 0.2), rgba(255, 255, 255, 0.04));
+            border-color: rgba(255, 176, 137, 0.4);
+        }
+
+        .podium-card.third::after {
+            background: rgba(255, 176, 137, 0.5);
+        }
+
+        .scoreboard-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0 0.25rem;
+        }
+
+        .scoreboard-head h2 {
+            font-size: clamp(1.5rem, 2.2vw, 2.3rem);
+        }
+
+        .refresh {
+            color: var(--muted);
+            font-size: clamp(0.85rem, 1.2vw, 1rem);
+        }
+
+        .table-wrap {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .table-wrap.scrollable {
+            overflow: auto;
+        }
+
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .score-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: rgba(255, 77, 148, 0.92);
+            color: white;
+            padding: 1rem 0.9rem;
+            text-align: left;
+            font-size: clamp(0.9rem, 1vw, 1rem);
+            letter-spacing: 0.05rem;
+            text-transform: uppercase;
+        }
+
+        .score-table tbody tr {
+            transform-origin: center;
+        }
+
+        .score-table tbody tr.row-enter {
+            animation: rowEnter 0.65s ease-out both;
+        }
+
+        .score-table tbody tr.row-up {
+            animation: rowRise 0.75s ease-out both;
+        }
+
+        .score-table tbody tr.row-down {
+            animation: rowDrop 0.75s ease-out both;
+        }
+
+        .score-table tbody tr.row-score-change .score-value,
+        .score-table tbody tr.row-score-change .card-score-value {
+            animation: scorePulse 1s ease-out both;
+        }
+
+        .score-table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .score-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .score-table tbody tr.rank-1 {
+            background: linear-gradient(90deg, rgba(255, 209, 102, 0.14), rgba(255, 77, 148, 0.05));
+        }
+
+        .score-table tbody tr.rank-2 {
+            background: linear-gradient(90deg, rgba(217, 228, 245, 0.10), rgba(255, 77, 148, 0.04));
+        }
+
+        .score-table tbody tr.rank-3 {
+            background: linear-gradient(90deg, rgba(255, 176, 137, 0.12), rgba(255, 77, 148, 0.04));
+        }
+
+        .score-table td {
+            padding: 1rem 0.9rem;
+            border-bottom: 1px solid rgba(255, 77, 148, 0.18);
+            color: var(--text);
+            vertical-align: middle;
+            font-size: clamp(1rem, 1.4vw, 1.35rem);
+        }
+
+        .score-table td:nth-child(1),
+        .score-table td:nth-child(3),
+        .score-table td:nth-child(4),
+        .score-table td:nth-child(5) {
+            text-align: center;
+        }
+
+        .row.rank-1 {
+            background: linear-gradient(90deg, rgba(255, 209, 102, 0.16), rgba(255, 77, 148, 0.08));
+            border-color: rgba(255, 209, 102, 0.45);
+        }
+
+        .row.rank-2 {
+            background: linear-gradient(90deg, rgba(217, 228, 245, 0.12), rgba(255, 77, 148, 0.06));
+            border-color: rgba(217, 228, 245, 0.38);
+        }
+
+        .row.rank-3 {
+            background: linear-gradient(90deg, rgba(255, 176, 137, 0.15), rgba(255, 77, 148, 0.06));
+            border-color: rgba(255, 176, 137, 0.42);
+        }
+
+        .place {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+            font-weight: 900;
+        }
+
+        .medal {
+            font-size: clamp(1.8rem, 2.7vw, 2.6rem);
+        }
+
+        .player-name {
+            font-size: clamp(1.15rem, 1.9vw, 1.7rem);
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .player-status {
+            margin-top: 0.25rem;
+            color: var(--muted);
+            font-size: clamp(0.85rem, 1.1vw, 1rem);
+            text-transform: uppercase;
+            letter-spacing: 0.08rem;
+        }
+
+        .score,
+        .card-score {
+            text-align: center;
+        }
+
+        .score-label,
+        .card-score-label {
+            display: block;
+            color: var(--accent-soft);
+            font-size: clamp(0.75rem, 0.95vw, 0.92rem);
+            text-transform: uppercase;
+            letter-spacing: 0.12rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .score-value {
+            color: var(--success);
+            font-size: clamp(1.4rem, 2.1vw, 2rem);
+            font-weight: 900;
+        }
+
+        .card-score-value {
+            color: var(--text);
+            font-size: clamp(1.15rem, 1.7vw, 1.55rem);
+            font-weight: 800;
+        }
+
+        .found-value {
+            font-size: clamp(1.2rem, 1.7vw, 1.5rem);
+        }
+
+        .empty {
+            min-height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+            font-size: clamp(1.2rem, 2vw, 2rem);
+            border-radius: 24px;
+            border: 1px dashed rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .fullscreen-prompt {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: rgba(7, 4, 14, 0.72);
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+
+        .fullscreen-prompt.visible {
+            display: flex;
+        }
+
+        .fullscreen-card {
+            max-width: 540px;
+            width: min(100%, 540px);
+            border-radius: 28px;
+            padding: 2rem;
+            background: rgba(19, 10, 34, 0.94);
+            border: 1px solid rgba(255, 77, 148, 0.35);
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+            text-align: center;
+        }
+
+        .fullscreen-card h3 {
+            font-size: clamp(1.6rem, 2vw, 2rem);
+            margin-bottom: 0.85rem;
+        }
+
+        .fullscreen-card p {
+            color: var(--muted);
+            font-size: clamp(1rem, 1.25vw, 1.1rem);
+            line-height: 1.45;
+            margin-bottom: 1.2rem;
+        }
+
+        .fullscreen-button {
+            border: none;
+            border-radius: 999px;
+            padding: 0.95rem 1.4rem;
+            background: linear-gradient(135deg, var(--accent), #ff7fab);
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .fullscreen-button:hover {
+            filter: brightness(1.08);
+        }
+
+        @keyframes rowEnter {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.97);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes rowRise {
+            0% {
+                transform: translateY(16px) scale(0.98);
+                box-shadow: 0 0 0 rgba(125, 255, 179, 0);
+            }
+            40% {
+                transform: translateY(-8px) scale(1.015);
+                box-shadow: 0 14px 34px rgba(125, 255, 179, 0.18);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                box-shadow: 0 0 0 rgba(125, 255, 179, 0);
+            }
+        }
+
+        @keyframes rowDrop {
+            0% {
+                transform: translateY(-12px) scale(1);
+                opacity: 0.88;
+            }
+            45% {
+                transform: translateY(8px) scale(0.992);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes scorePulse {
+            0% {
+                color: var(--text);
+                text-shadow: 0 0 0 rgba(125, 255, 179, 0);
+            }
+            30% {
+                color: #c6ffe0;
+                text-shadow: 0 0 20px rgba(125, 255, 179, 0.8);
+            }
+            100% {
+                color: inherit;
+                text-shadow: 0 0 0 rgba(125, 255, 179, 0);
+            }
+        }
+
+        @keyframes podiumReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(24px) scale(0.96);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (max-width: 1100px) {
+            body { overflow: auto; }
+
+            .header {
+                grid-template-columns: 1fr;
+            }
+
+            .podium {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .layout {
+                padding: 1rem;
+            }
+
+            .hero,
+            .meta,
+            .scoreboard {
+                border-radius: 20px;
+            }
+
+            .meta {
+                grid-template-columns: 1fr;
+            }
+
+            .scoreboard-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .table-wrap {
+                overflow: auto;
+            }
+
+            .score-table {
+                min-width: 760px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="layout">
+        <section class="header">
+            <div class="hero">
+                <div class="brand"><span class="brand-mark"></span>ZEKATON</div>
+                <h1>Tableau des scores</h1>
+                <p class="subtitle">Classement en direct des joueurs, trié par score total décroissant pour la projection.</p>
+            </div>
+            <div class="meta">
+                <div class="stat">
+                    <span class="stat-label">État du jeu</span>
+                    <span class="stat-value" id="gameState">En attente</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Joueurs classés</span>
+                    <span class="stat-value" id="playerCount">0</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Carte en cours</span>
+                    <span class="stat-value" id="currentCard">Carte 1</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Question</span>
+                    <span class="stat-value" id="currentQuestion">Q1</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="scoreboard">
+            <div id="podium" class="podium"></div>
+            <div class="scoreboard-head">
+                <h2>Classement général</h2>
+                <div class="refresh">Dernière mise à jour : <span id="lastUpdated">--:--:--</span></div>
+            </div>
+            <div id="tableWrap" class="table-wrap">
+                <table class="score-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%;">Rang</th>
+                            <th style="width: 40%;">Joueur</th>
+                            <th style="width: 16%;">Score Carte</th>
+                            <th style="width: 16%;">Score Total</th>
+                            <th style="width: 16%;">Trouvé</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <div id="fullscreenPrompt" class="fullscreen-prompt">
+        <div class="fullscreen-card">
+            <h3>Passer en plein écran</h3>
+            <p>Le navigateur peut bloquer l’activation automatique. Utilisez ce bouton pour projeter le classement sur tout l’écran.</p>
+            <button id="fullscreenButton" class="fullscreen-button" type="button">Activer le plein écran</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const fullscreenPrompt = document.getElementById('fullscreenPrompt');
+        const fullscreenButton = document.getElementById('fullscreenButton');
+        let previousRanking = [];
+
+        async function requestProjectionFullscreen() {
+            if (document.fullscreenElement) {
+                fullscreenPrompt.classList.remove('visible');
+                return true;
+            }
+
+            try {
+                await document.documentElement.requestFullscreen();
+                fullscreenPrompt.classList.remove('visible');
+                return true;
+            } catch (error) {
+                fullscreenPrompt.classList.add('visible');
+                return false;
+            }
+        }
+
+        fullscreenButton.addEventListener('click', () => {
+            requestProjectionFullscreen();
+        });
+
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenPrompt.classList.remove('visible');
+            }
+        });
+
+        function formatState(state) {
+            const labels = {
+                WAITING_FOR_CARD: 'En attente de carte',
+                WAITING_FOR_QUESTION: 'En attente de question',
+                GUESSING: 'Question en cours',
+                FEEDBACK: 'Résultats en cours',
+                CARD_FINISHED: 'Carte terminée',
+                GAME_FINISHED: 'Partie terminée'
+            };
+
+            return labels[state] || state;
+        }
+
+        function medalFor(position) {
+            if (position === 0) return '🥇';
+            if (position === 1) return '🥈';
+            if (position === 2) return '🥉';
+            return '#';
+        }
+
+        function getRowAnimationClass(player, index) {
+            const previousIndex = previousRanking.findIndex(previousPlayer => previousPlayer.name === player.name);
+
+            if (previousIndex === -1) {
+                return 'row-enter';
+            }
+
+            if (previousIndex > index) {
+                return 'row-up';
+            }
+
+            if (previousIndex < index) {
+                return 'row-down';
+            }
+
+            return '';
+        }
+
+        function hasScoreChanged(player) {
+            const previousPlayer = previousRanking.find(entry => entry.name === player.name);
+
+            if (!previousPlayer) {
+                return true;
+            }
+
+            return previousPlayer.totalScore !== player.totalScore || previousPlayer.cardScore !== player.cardScore;
+        }
+
+        function renderRows(players) {
+            const rows = document.getElementById('rows');
+            const tableWrap = document.getElementById('tableWrap');
+
+            if (!players.length) {
+                tableWrap.classList.remove('scrollable');
+                rows.innerHTML = '<tr><td colspan="5"><div class="empty">Aucun score à afficher pour le moment.</div></td></tr>';
+                previousRanking = [];
+                return;
+            }
+
+            tableWrap.classList.add('scrollable');
+            rows.innerHTML = players.map((player, index) => {
+                const rankClass = index < 3 ? ` rank-${index + 1}` : '';
+                const animationClass = getRowAnimationClass(player, index);
+                const scoreClass = hasScoreChanged(player) ? ' row-score-change' : '';
+                const found = player.found ? '✅' : '❌';
+                return `
+                    <tr class="${rankClass} ${animationClass}${scoreClass}">
+                        <td>
+                            <div class="place">
+                                <span class="medal">${medalFor(index)}</span>
+                                <span>#${index + 1}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-status">En jeu</div>
+                        </td>
+                        <td class="card-score">
+                            <span class="card-score-value">${player.cardScore}</span>
+                        </td>
+                        <td class="score">
+                            <span class="score-value">${player.totalScore}</span>
+                        </td>
+                        <td>
+                            <span class="found-value">${found}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            previousRanking = players.map(player => ({
+                name: player.name,
+                totalScore: player.totalScore,
+                cardScore: player.cardScore
+            }));
+        }
+
+        function renderPodium(players, gameState) {
+            const podium = document.getElementById('podium');
+
+            if (gameState !== 'GAME_FINISHED' || !players.length) {
+                podium.classList.remove('visible');
+                podium.innerHTML = '';
+                return;
+            }
+
+            const topThree = players.slice(0, 3);
+            const order = [1, 0, 2].filter(index => topThree[index]);
+            const labels = [
+                { medal: '🥇', rank: '1re place', className: 'first' },
+                { medal: '🥈', rank: '2e place', className: 'second' },
+                { medal: '🥉', rank: '3e place', className: 'third' }
+            ];
+
+            podium.innerHTML = order.map(playerIndex => {
+                const player = topThree[playerIndex];
+                const label = labels[playerIndex];
+                return `
+                    <section class="podium-card ${label.className}">
+                        <div class="podium-rank">${label.rank}</div>
+                        <div class="podium-medal">${label.medal}</div>
+                        <div class="podium-name">${player.name}</div>
+                        <div class="podium-score">${player.totalScore} pts</div>
+                        <div class="player-status">Score carte: ${player.cardScore} pts</div>
+                    </section>
+                `;
+            }).join('');
+
+            podium.classList.add('visible');
+        }
+
+        socket.on('update', (data) => {
+            const ranking = Object.values(data.players)
+                .filter(player => !player.left)
+                .sort((a, b) => {
+                    if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+                    return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
+                });
+
+            document.getElementById('gameState').innerText = formatState(data.gameState);
+            document.getElementById('playerCount').innerText = String(ranking.length);
+            document.getElementById('currentCard').innerText = `Carte ${data.currentCardIndex + 1}`;
+            document.getElementById('currentQuestion').innerText = data.currentQuestionIndex >= 4
+                ? 'Terminée'
+                : `Q${data.currentQuestionIndex + 1}`;
+            document.getElementById('lastUpdated').innerText = new Date().toLocaleTimeString('fr-FR');
+
+            renderPodium(ranking, data.gameState);
+            renderRows(ranking);
+        });
+
+        if (new URLSearchParams(window.location.search).get('fs') === '1') {
+            requestProjectionFullscreen();
+        }
+    </script>
+</body>
+</html>

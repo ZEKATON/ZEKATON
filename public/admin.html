@@ -16,19 +16,32 @@
         <div id="adminActions" style="display:none;align-items:center;gap:10px;">
             <button id="btnFinish" onclick="if(confirm('Terminer la partie ?')) socket.emit('admin:finishGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Terminer la partie</button>
             <button id="btnReset" onclick="if(confirm('Réinitialiser la partie ?')) socket.emit('admin:resetGame')" style="background:#ff6b6b;padding:10px 20px;margin:0;">Réinitialiser la partie</button>
+            <button onclick="window.open('/scores?fs=1', '_blank')" style="background:#00b894;padding:10px 20px;margin:0;">Écran scores</button>
         </div>
-        <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:6px 8px;display:inline-flex;align-items:center;gap:8px;width:680px;max-width:68vw;">
-            <span style="color:#ffffff;font-size:1rem;font-weight:900;letter-spacing:1px;text-shadow:0 0 4px rgba(255,255,255,0.9),0 0 10px rgba(255,255,255,0.8),0 0 18px rgba(255,255,255,0.6);">ZEKATON</span>
-            <span style="color:#aaa;font-size:0.85rem;">🔗 Lien joueurs :</span>
-            <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:460px;"></span>
-            <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
+        <div id="playerLink" style="background:#1a0b2e;border:2px solid #ff4d94;border-radius:8px;padding:8px 10px;display:flex;align-items:stretch;gap:12px;width:920px;max-width:68vw;">
+            <div style="display:flex;align-items:center;gap:8px;min-width:120px;">
+                <span style="color:#ffffff;font-size:1rem;font-weight:900;letter-spacing:1px;text-shadow:0 0 4px rgba(255,255,255,0.9),0 0 10px rgba(255,255,255,0.8),0 0 18px rgba(255,255,255,0.6);">ZEKATON</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:0;">
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                    <span style="color:#aaa;font-size:0.85rem;white-space:nowrap;">🔗 Lien joueurs :</span>
+                    <span id="linkText" style="color:#00ff00;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;"></span>
+                    <button id="copyBtn" onclick="copyLink()" style="padding:5px 12px;font-size:0.8rem;background:#4d94ff;margin:0;">📋 Copier</button>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                    <span style="color:#aaa;font-size:0.85rem;white-space:nowrap;">🖥️ Écran scores :</span>
+                    <span id="scoreLinkText" style="color:#7dffb3;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;"></span>
+                    <button id="copyScoreBtn" onclick="copyScoreLink()" style="padding:5px 12px;font-size:0.8rem;background:#00b894;margin:0;">📋 Copier</button>
+                </div>
+                <div id="networkHint" style="display:none;color:#ffcf66;font-size:0.8rem;line-height:1.3;"></div>
+            </div>
         </div>
     </div>
     <div id="setup"><input id="nums" placeholder="20,30,40"><button onclick="setNums()">Enregistrer</button></div>
     <div id="qrScreen" style="display:none;position:fixed;inset:0;background:#0f0820;z-index:900;">
         <div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
             <h2 style="color:#ffffff;margin-bottom:10px;">Scannez pour rejoindre ZEKATON</h2>
-            <p style="color:#ffb3d1;margin-bottom:18px;">https://zekaton.onrender.com</p>
+            <p id="playerUrlLabel" style="color:#ffb3d1;margin-bottom:18px;">Chargement du lien...</p>
             <img id="qrImage" alt="QR Code Zekaton" style="width:min(90vw,90vh);max-width:900px;max-height:72vh;object-fit:contain;border:3px solid #ff4d94;border-radius:16px;background:#fff;padding:12px;" />
         </div>
         <div style="position:absolute;right:16px;bottom:16px;display:flex;gap:10px;">
@@ -65,15 +78,56 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const playerUrl = 'https://zekaton.onrender.com';
-        document.getElementById('linkText').innerText = playerUrl;
-        document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=1200x1200&data=${encodeURIComponent(playerUrl)}`;
+        let playerUrl = window.location.origin;
+        let scoreUrl = `${window.location.origin}/scores?fs=1`;
+
+        function updateDisplayedUrls() {
+            document.getElementById('linkText').innerText = playerUrl;
+            document.getElementById('scoreLinkText').innerText = scoreUrl;
+            document.getElementById('playerUrlLabel').innerText = playerUrl;
+            document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=1200x1200&data=${encodeURIComponent(playerUrl)}`;
+        }
+
+        function setCopyFeedback(buttonId, label) {
+            const btn = document.getElementById(buttonId);
+            btn.innerText = label;
+            setTimeout(() => btn.innerText = '📋 Copier', 2000);
+        }
+
         function copyLink() {
             navigator.clipboard.writeText(playerUrl).then(() => {
-                const btn = document.getElementById('copyBtn');
-                btn.innerText = '✅ Copié !';
-                setTimeout(() => btn.innerText = '📋 Copier', 2000);
+                setCopyFeedback('copyBtn', '✅ Copié !');
             });
+        }
+        function copyScoreLink() {
+            navigator.clipboard.writeText(scoreUrl).then(() => {
+                setCopyFeedback('copyScoreBtn', '✅ Copié !');
+            });
+        }
+        async function loadConnectionInfo() {
+            try {
+                const response = await fetch('/api/connection-info');
+                if (!response.ok) return;
+                const info = await response.json();
+                const preferredOrigin = info.lanOrigins && info.lanOrigins.length ? info.lanOrigins[0] : info.currentOrigin;
+
+                playerUrl = `${preferredOrigin}${info.playerPath}`;
+                scoreUrl = `${preferredOrigin}${info.scoreboardPath}`;
+                updateDisplayedUrls();
+
+                const currentHost = window.location.hostname;
+                const hint = document.getElementById('networkHint');
+                if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+                    hint.style.display = 'block';
+                    hint.innerText = info.lanOrigins && info.lanOrigins.length
+                        ? `Utilisez ce lien réseau sur le 2e ordinateur : ${preferredOrigin}`
+                        : 'Ouvrez l\'admin via l\'adresse IP du PC serveur pour partager les liens sur un autre ordinateur.';
+                } else {
+                    hint.style.display = 'none';
+                }
+            } catch (error) {
+                updateDisplayedUrls();
+            }
         }
         function setNums() { 
             socket.emit('admin:setNumbers', document.getElementById('nums').value.split(',').map(Number)); 
@@ -97,6 +151,8 @@
             document.getElementById('adminActions').style.display='flex';
             document.body.style.paddingTop = '78px';
         }
+        updateDisplayedUrls();
+        loadConnectionInfo();
         socket.on('update', (data) => {
             const questionLabel = data.currentQuestionIndex >= 4 ? 'Fin de la carte' : `Question: ${data.currentQuestionIndex + 1}`;
             document.getElementById('status').innerText = `Carte: ${data.currentCardIndex + 1} | ${questionLabel} | État: ${data.gameState}`;
