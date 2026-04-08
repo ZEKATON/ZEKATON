@@ -33,12 +33,6 @@
                     <span id="scoreLinkText" style="color:#7dffb3;font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;"></span>
                     <button id="copyScoreBtn" onclick="copyScoreLink()" style="padding:5px 12px;font-size:0.8rem;background:#00b894;margin:0;">📋 Copier</button>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;min-width:0;">
-                    <span style="color:#aaa;font-size:0.85rem;white-space:nowrap;">🌐 IP/URL réseau :</span>
-                    <input id="networkOriginInput" placeholder="http://192.168.1.21:3000" style="flex:1;min-width:0;background:#120724;border:1px solid #ff4d94;color:#fff;padding:5px 8px;border-radius:6px;font-size:0.8rem;" />
-                    <button id="saveNetworkOriginBtn" onclick="saveNetworkOrigin()" style="padding:5px 10px;font-size:0.8rem;background:#4d94ff;margin:0;">Enregistrer</button>
-                    <button id="resetNetworkOriginBtn" onclick="resetNetworkOrigin()" style="padding:5px 10px;font-size:0.8rem;background:#6c5ce7;margin:0;">Auto</button>
-                </div>
                 <div id="networkHint" style="display:none;color:#ffcf66;font-size:0.8rem;line-height:1.3;"></div>
             </div>
         </div>
@@ -84,10 +78,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const PUBLIC_ORIGIN = 'https://zekaton.onrender.com';
-        const NETWORK_ORIGIN_KEY = 'zekaton_network_origin';
-        let customOrigin = localStorage.getItem(NETWORK_ORIGIN_KEY) || '';
-        let playerUrl = customOrigin || window.location.origin;
+        let playerUrl = window.location.origin;
         let scoreUrl = `${playerUrl}/scores?fs=1`;
 
         function updateDisplayedUrls() {
@@ -95,39 +86,6 @@
             document.getElementById('scoreLinkText').innerText = scoreUrl;
             document.getElementById('playerUrlLabel').innerText = playerUrl;
             document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=1200x1200&data=${encodeURIComponent(playerUrl)}`;
-            const input = document.getElementById('networkOriginInput');
-            if (input && document.activeElement !== input) {
-                input.value = customOrigin;
-            }
-        }
-
-        function normalizeOrigin(value) {
-            const trimmed = value.trim();
-            if (!trimmed) return '';
-            const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
-            return withProtocol.replace(/\/$/, '');
-        }
-
-        function saveNetworkOrigin() {
-            const input = document.getElementById('networkOriginInput');
-            const normalized = normalizeOrigin(input.value);
-            if (!normalized) {
-                alert('Entrez une IP/URL valide (ex: 192.168.1.21:3000)');
-                return;
-            }
-            customOrigin = normalized;
-            localStorage.setItem(NETWORK_ORIGIN_KEY, customOrigin);
-            playerUrl = customOrigin;
-            scoreUrl = `${playerUrl}/scores?fs=1`;
-            updateDisplayedUrls();
-            setCopyFeedback('saveNetworkOriginBtn', '✅ OK');
-        }
-
-        function resetNetworkOrigin() {
-            customOrigin = '';
-            localStorage.removeItem(NETWORK_ORIGIN_KEY);
-            loadConnectionInfo();
-            setCopyFeedback('resetNetworkOriginBtn', '✅ Auto');
         }
 
         function setCopyFeedback(buttonId, label) {
@@ -159,7 +117,7 @@
                 const autoOrigin = (isLocalhost && info.lanOrigins && info.lanOrigins.length > 0)
                     ? info.lanOrigins[0]
                     : window.location.origin;
-                const preferredOrigin = customOrigin || autoOrigin;
+                const preferredOrigin = autoOrigin;
 
                 playerUrl = `${preferredOrigin}${info.playerPath}`;
                 scoreUrl = `${preferredOrigin}${info.scoreboardPath}`;
