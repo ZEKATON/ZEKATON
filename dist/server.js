@@ -28,6 +28,7 @@ let timeLeft = 180;
 function getLanOrigins(port) {
     const interfaces = os_1.default.networkInterfaces();
     const scoredOrigins = [];
+    const ignoredInterfaceName = /(virtual|vmware|vbox|docker|hyper-v|loopback|npcap|vethernet|wsl)/i;
     function scoreIpv4Address(ip) {
         // 169.254.x.x is link-local and usually not reachable from phones on Wi-Fi.
         if (ip.startsWith('169.254.'))
@@ -43,12 +44,22 @@ function getLanOrigins(port) {
         // Keep other IPv4 as last-resort fallbacks.
         return 10;
     }
-    for (const networkInterface of Object.values(interfaces)) {
+    for (const [interfaceName, networkInterface] of Object.entries(interfaces)) {
         if (!networkInterface)
+            continue;
+        if (ignoredInterfaceName.test(interfaceName))
             continue;
         for (const address of networkInterface) {
             if (address.family === 'IPv4' && !address.internal) {
-                const score = scoreIpv4Address(address.address);
+                let score = scoreIpv4Address(address.address);
+                const normalizedName = interfaceName.toLowerCase();
+                // Prefer likely active Wi-Fi/Ethernet adapters.
+                if (normalizedName.includes('wi-fi') || normalizedName.includes('wifi') || normalizedName.includes('wlan')) {
+                    score += 15;
+                }
+                else if (normalizedName.includes('ethernet') || normalizedName.includes('lan')) {
+                    score += 10;
+                }
                 if (score > 0) {
                     scoredOrigins.push({ origin: `http://${address.address}:${port}`, score });
                 }
